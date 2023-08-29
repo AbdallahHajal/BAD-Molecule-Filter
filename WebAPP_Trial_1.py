@@ -267,92 +267,81 @@ def universal_strategy():
 
     # Add your prediction logic after this
     if prediction:
-          if one_or_few_SMILES and not many_SMILES:
-            df = pd.DataFrame(eval(one_or_few_SMILES), columns =['SMILES'])
-            #========= function call to calculate 200 molecular descriptors using SMILES
-            mordred_descriptors_df = All_Mordred_descriptors(df['SMILES'])
-            Morgan_fpts = morgan_fpts(df['SMILES'])
-            Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts,columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
-            exclude_cols = ['Agg status']
-            cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
-            Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
-            cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
-            Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
-            
-            #========= Put the 200 molecular descriptors in  data frame
-            #========= For Cruzain
-            
-            X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
-            X_test_scaled_Cru = preprocess_and_scale_Cru(X_test_Cruzain)
-            Agg_Prediction_Cru = model_Cruz.predict(X_test_scaled_Cru)
-            
-            
-            X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
-            X_test_scaled_Lac = preprocess_and_scale_Lac(X_test_Lactamase)
-            Agg_Prediction_Lac = model_Lac.predict(X_test_scaled_Lac)
-            
-            
-            X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
-            X_test_scaled_Shoi = preprocess_and_scale_Shoi(X_test_Shoichet)
-            Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
-            
-            majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
-                                for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
-            
-            
-            predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
-            output = pd.concat([df, predicted], axis=1)
-
-
-            st.markdown('''## See your output in the following table:''')
-            st.write(output)
-
-            #======= show CSV file attachment
-            st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
-            
-            pass  # Your code here
-        elif many_SMILES and not one_or_few_SMILES:
-            df2 = pd.read_csv(many_SMILES)
-            mordred_descriptors_df = All_Mordred_descriptors(df2['SMILES'])
-            Morgan_fpts = morgan_fpts(df2['SMILES'])
-            Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts,columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
-            exclude_cols = ['Agg status']
-            cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
-            Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
-            cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
-            Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
-            
-            #========= Put the 200 molecular descriptors in  data frame
-            #========= For Cruzain
-            
-            X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
-            X_test_scaled_Cru = preprocess_and_scale_Cru(X_test_Cruzain)
-            Agg_Prediction_Cru = model_Cruz.predict(X_test_scaled_Cru)
-            
-            
-            X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
-            X_test_scaled_Lac = preprocess_and_scale_Lac(X_test_Lactamase)
-            Agg_Prediction_Lac = model_Lac.predict(X_test_scaled_Lac)
-            
-            
-            X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
-            X_test_scaled_Shoi = preprocess_and_scale_Shoi(X_test_Shoichet)
-            Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
-            
-            majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
-                                for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
-            
-            
-            predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
-
-            output = pd.concat([df2, predicted], axis=1)
-            st.markdown('''## See your output in the following table:''')
-            st.write(output)
-            st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
-
-            pass  # Your code here
-        else:
-            st.warning("Please provide input either as SMILES string or CSV file.")
+      if one_or_few_SMILES and not many_SMILES:
+          df = pd.DataFrame(eval(one_or_few_SMILES), columns=['SMILES'])
+  
+          #========= function call to calculate 200 molecular descriptors using SMILES
+          mordred_descriptors_df = All_Mordred_descriptors(df['SMILES'])
+          Morgan_fpts = morgan_fpts(df['SMILES'])
+          Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts, columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
+          exclude_cols = ['Agg status']
+          cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
+          Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
+          cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
+          Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
+          
+          #========= Put the 200 molecular descriptors in data frame
+          #========= For Cruzain
+          X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
+          X_test_scaled_Cru = preprocess_and_scale_Cru(X_test_Cruzain)
+          Agg_Prediction_Cru = model_Cruz.predict(X_test_scaled_Cru)
+          
+          X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
+          X_test_scaled_Lac = preprocess_and_scale_Lac(X_test_Lactamase)
+          Agg_Prediction_Lac = model_Lac.predict(X_test_scaled_Lac)
+          
+          X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
+          X_test_scaled_Shoi = preprocess_and_scale_Shoi(X_test_Shoichet)
+          Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
+          
+          majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
+                                  for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
+          
+          predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
+          output = pd.concat([df, predicted], axis=1)
+  
+          st.markdown('''## See your output in the following table:''')
+          st.write(output)
+  
+          #======= show CSV file attachment
+          st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+          
+      elif many_SMILES and not one_or_few_SMILES:
+          df2 = pd.read_csv(many_SMILES)
+          mordred_descriptors_df = All_Mordred_descriptors(df2['SMILES'])
+          Morgan_fpts = morgan_fpts(df2['SMILES'])
+          Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts, columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
+          exclude_cols = ['Agg status']
+          cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
+          Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
+          cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
+          Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
+          
+          #========= Put the 200 molecular descriptors in data frame
+          #========= For Cruzain
+          X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
+          X_test_scaled_Cru = preprocess_and_scale_Cru(X_test_Cruzain)
+          Agg_Prediction_Cru = model_Cruz.predict(X_test_scaled_Cru)
+          
+          X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
+          X_test_scaled_Lac = preprocess_and_scale_Lac(X_test_Lactamase)
+          Agg_Prediction_Lac = model_Lac.predict(X_test_scaled_Lac)
+          
+          X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
+          X_test_scaled_Shoi = preprocess_and_scale_Shoi(X_test_Shoichet)
+          Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
+          
+          majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
+                                  for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
+          
+          predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
+          output = pd.concat([df2, predicted], axis=1)
+  
+          st.markdown('''## See your output in the following table:''')
+          st.write(output)
+          st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+      else:
+          st.warning("Please provide input either as SMILES string or CSV file.")
 
 
 def ad_strategy():
