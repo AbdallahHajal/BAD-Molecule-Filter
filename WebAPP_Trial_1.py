@@ -68,13 +68,13 @@ def home_page():
     st.markdown('---')  # Horizontal Line
     
     figure1 = Image.open('Figure 1..JPG')
-    st.image(figure1, caption='Figure 1. Process of drug aggregation & enzyme-aggregate complex ', width=300)
+    st.image(figure1, caption='Figure 1. Process of drug aggregation & enzyme-aggregate complex ', width=500)
 
     st.markdown('---')  # Horizontal Line
 
     # Displaying the Graphical Abstract
     figure2 = Image.open('figure 2.JPG')
-    st.image(figure2, caption='Figure 2. Graphical Abstract', width=800)
+    st.image(figure2, caption='Figure 2. Graphical Abstract', width=900)
     
     st.markdown('---')  # Horizontal Line
 
