@@ -301,12 +301,14 @@ def universal_strategy():
             
             
             predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
+            output = pd.concat([df, predicted], axis=1)
+
 
             st.markdown('''## See your output in the following table:''')
             st.write(output)
 
             #======= show CSV file attachment
-            st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+            st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
             
             pass  # Your code here
         elif many_SMILES:
@@ -343,7 +345,7 @@ def universal_strategy():
             
             predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
 
-            output = pd.concat([df, predicted], axis=1)
+            output = pd.concat([df2, predicted], axis=1)
             st.markdown('''## See your output in the following table:''')
             st.write(output)
             st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
