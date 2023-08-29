@@ -64,10 +64,19 @@ from PIL import Image
 def home_page():
     # Introduction about Colloidal Aggregates
     st.markdown('**Colloidal Aggregates** are a serious problem in drug discovery and drug development projects. Aggregators bind to various enzymes non-specifically (Fig. 1) and produce wrong results during assay screening, making them a source of false positives. As a result, they may lead to the loss of years of work, effort, and resources. This work aims to build a novel webapp that can distinguish between colloidal aggregators and non-aggregators in chemical space. This Web App is developed by training the three largest datasets available using LightGBM and CatBoost algorithms. Predictions from the three datasets are combined into a consensus model.')
+    
+    st.markdown('---')  # Horizontal Line
+    
+    figure1 = Image.open('Figure 1..JPG')
+    st.image(figure1, caption='Figure 1. Process of drug aggregation & enzyme-aggregate complex ', width=300)
+
+    st.markdown('---')  # Horizontal Line
 
     # Displaying the Graphical Abstract
     figure2 = Image.open('figure 2.JPG')
-    st.image(figure2, caption='Figure 1. Graphical Abstract', width=1000)
+    st.image(figure2, caption='Figure 2. Graphical Abstract', width=800)
+    
+    st.markdown('---')  # Horizontal Line
 
     # Instructions on how to use the app
     st.subheader('How to Use this App')
