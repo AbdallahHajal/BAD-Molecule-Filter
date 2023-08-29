@@ -58,17 +58,6 @@ from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 
 
-app_mode = st.sidebar.selectbox('Select Page',['Home','universal_strategy',ad_strategy])
-
-if app_mode=='Home': 
-    st.title('Welcome to the Consensus Aggregation Predictor') 
-    st.markdown(' :') 
-    df=pd.read_csv('emp_analytics.csv') #Read our data dataset
-    st.write(df.head())
-
-import streamlit as st
-from PIL import Image
-
 import streamlit as st
 from PIL import Image
 
@@ -90,24 +79,22 @@ def universal_strategy():
 def ad_strategy():
     st.write("Information and tools for the AD Strategy go here.")
 
-# Main App Functionality
-if __name__ == '__main__':
-    
-    # Page Configuration
-    st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
+# Page Configuration
+st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 
-    # Title
-    st.title('Consensus Aggregation Predictor')
+# Title
+st.title('Consensus Aggregation Predictor')
 
-    # Navigation sidebar
-    page = st.sidebar.selectbox("Choose a page:", ["Home", "Universal Strategy", "AD Strategy"])
-    
-    if page == "Home":
-        home_page()
-    elif page == "Universal Strategy":
-        universal_strategy()
-    else:
-        ad_strategy()
+# Navigation sidebar
+page = st.sidebar.selectbox("Choose a page:", ["Home", "Universal Strategy", "AD Strategy"])
+
+if page == "Home":
+    home_page()
+elif page == "Universal Strategy":
+    universal_strategy()
+else:
+    ad_strategy()
+
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as f:
         model_Cruz = pickle.load(f)
