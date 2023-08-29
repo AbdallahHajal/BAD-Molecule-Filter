@@ -5,12 +5,14 @@ Created on Tue Aug 29 15:37:06 2023
 @author: abdallah.abouhajal
 """
 
+# Built-in and third-party libraries
 import warnings
 import base64
 import io
 from distutils.command.upload import upload
 from scipy import stats
 from PIL import Image
+import pickle
 
 # Numpy, Pandas, Matplotlib, Seaborn
 import numpy as np
@@ -40,16 +42,13 @@ from imblearn.under_sampling import RandomUnderSampler
 
 # RDKIt modules
 from rdkit import Chem
-from rdkit.Chem import AllChem, Descriptors, rdMolDescriptors, Draw, inchi
+from rdkit.Chem import AllChem, Descriptors
 from rdkit.ML.Descriptors import MoleculeDescriptors
 
 # Streamlit
 import streamlit as st
 
 # Other third-party modules
-from pyADA import ApplicabilityDomain
-from featurewiz import featurewiz
-import molvs
 from mordred import Calculator, descriptors
 import dask.dataframe as dd
 
@@ -59,9 +58,7 @@ from catboost import CatBoostClassifier
 from lightgbm import LGBMClassifier
 
 
-
-
-app_mode = st.sidebar.selectbox('Select Page',['Home','Predict_Aggregation'])
+app_mode = st.sidebar.selectbox('Select Page',['Home','universal_strategy',ad_strategy])
 
 if app_mode=='Home': 
     st.title('Welcome to the Consensus Aggregation Predictor') 
