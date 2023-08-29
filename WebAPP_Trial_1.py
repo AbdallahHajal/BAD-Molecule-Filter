@@ -267,7 +267,7 @@ def universal_strategy():
 
     # Add your prediction logic after this
     if prediction:
-        if one_or_few_SMILES:
+          if one_or_few_SMILES and not many_SMILES:
             df = pd.DataFrame(eval(one_or_few_SMILES), columns =['SMILES'])
             #========= function call to calculate 200 molecular descriptors using SMILES
             mordred_descriptors_df = All_Mordred_descriptors(df['SMILES'])
@@ -311,7 +311,7 @@ def universal_strategy():
             st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
             
             pass  # Your code here
-        elif many_SMILES:
+        elif many_SMILES and not one_or_few_SMILES:
             df2 = pd.read_csv(many_SMILES)
             mordred_descriptors_df = All_Mordred_descriptors(df2['SMILES'])
             Morgan_fpts = morgan_fpts(df2['SMILES'])
