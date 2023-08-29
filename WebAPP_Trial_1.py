@@ -66,34 +66,12 @@ def home_page():
     st.markdown('**Colloidal Aggregates** are a serious problem in drug discovery and drug development projects. Aggregators bind to various enzymes non-specifically (Fig. 1) and produce wrong results during assay screening, making them a source of false positives. As a result, they may lead to the loss of years of work, effort, and resources. This work aims to build a novel webapp that can distinguish between colloidal aggregators and non-aggregators in chemical space. This Web App is developed by training the three largest datasets available using LightGBM and CatBoost algorithms. Predictions from the three datasets are combined into a consensus model.')
 
     # Displaying the Graphical Abstract
-    figure2 = Image.open('figure 1.JPG')
-    st.image(figure2, caption='Figure 1. Graphical Abstract', width=800)
+    figure2 = Image.open('figure 2.JPG')
+    st.image(figure2, caption='Figure 1. Graphical Abstract', width=1000)
 
     # Instructions on how to use the app
     st.subheader('How to Use this App')
     st.markdown('You may use two methods for Aggregates prediction: **The Universal Strategy** and the **AD strategy**. Additional information can be found in the research article.')
-
-def universal_strategy():
-    st.write("Information and tools for the Universal Strategy go here.")
-
-def ad_strategy():
-    st.write("Information and tools for the AD Strategy go here.")
-
-# Page Configuration
-st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
-
-# Title
-st.title('Consensus Aggregation Predictor')
-
-# Navigation sidebar
-page = st.sidebar.selectbox("Choose a page:", ["Home", "Universal Strategy", "AD Strategy"])
-
-if page == "Home":
-    home_page()
-elif page == "Universal Strategy":
-    universal_strategy()
-else:
-    ad_strategy()
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as f:
@@ -340,6 +318,26 @@ def universal_strategy():
             pass  # Your code here
         else:
             st.warning("Please provide input either as SMILES string or CSV file.")
+
+
+def ad_strategy():
+    st.write("Information and tools for the AD Strategy go here.")
+
+# Page Configuration
+st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
+
+# Title
+st.title('Consensus Aggregation Predictor')
+
+# Navigation sidebar
+page = st.sidebar.selectbox("Choose a page:", ["Home", "Universal Strategy", "AD Strategy"])
+
+if page == "Home":
+    home_page()
+elif page == "Universal Strategy":
+    universal_strategy()
+else:
+    ad_strategy()
 
 
 
