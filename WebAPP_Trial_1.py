@@ -80,7 +80,7 @@ def home_page():
 
     # Instructions on how to use the app
     st.subheader('How to Use this App')
-    st.markdown('You may use two methods for Aggregates prediction: **The Universal Strategy** and the **AD strategy**. Additional information can be found in the research article.')
+    st.markdown('You may use two methods for Aggregates prediction: **The Universal Strategy** and the **AD strategy**. Choose which method you want to use form the sidebar. Additional information can be found in the research article.')
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as f:
@@ -226,20 +226,42 @@ def file_download(data,file):
     link = f'<a href ="data:file/csv; base64,{f}" download={file}> Download {file} file</a>'
     return link
 
-def universal_strategy():
+st.subheader("Universal Strategy Predictor")
 
-    st.subheader("Universal Strategy Predictor")
+# Only the Ketcher editor instructions in the sidebar
+st.sidebar.markdown("If you want to draw a molecule, Please use the [**Ketcher editor**](https://lifescience.opensource.epam.com/KetcherDemoSA/index.html) ↗️.")  # The arrow symbol points to the link
 
-    # Input SMILES strings directly
-    one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
-    st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
+# Styling the header for instructions in the sidebar
+st.sidebar.markdown("### Instructions to obtain SMILES from Ketcher:")
 
-    # File uploader
-    many_SMILES = st.file_uploader("Upload your CSV file")
+# Individual instructions in the sidebar with emphasis on key steps
+st.sidebar.markdown("1. Draw your molecule in the **Ketcher editor**.")
+st.sidebar.markdown("2. Press on the **Save As** option in Ketcher.")
+st.sidebar.markdown("3. Select **SMILES** from the dropdown menu.")
+st.sidebar.markdown("4. **Copy** the provided SMILES representation.")
+st.sidebar.markdown("5. Return to this page and **paste** the SMILES in the box above.")
     
-    # Prediction button
-    st.markdown("""**If you upload your CSV file or entered the SMILE strings, click the button below to get the Aggregation prediction** """)
-    prediction = st.button('Predict Agg status of molecules')
+st.sidebar.write("Molecules Drawing powered by [Ketcher](https://github.com/epam/ketcher).")
+
+# Everything else in the main space
+st.markdown("You can either:")
+st.markdown("1. **Enter your SMILES** in the box below.")
+st.markdown("2. **Upload a CSV file** with the SMILES strings.")
+st.markdown("3. **Draw a Molecule** using Ketcher from the sidebar and obtain the SMILES strings.")
+st.markdown("---")  # Horizontal Line
+
+# Input SMILES strings directly
+one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
+st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
+
+# File uploader
+many_SMILES = st.file_uploader("Upload your CSV file")
+
+st.markdown("---")  # Horizontal Line
+# Prediction button description and button
+st.markdown("""**If you upload your CSV file or entered the SMILE strings, click the button below to get the Aggregation prediction** """)
+prediction = st.button('Predict Agg status of molecules')
+
 
     # Add your prediction logic after this
     if prediction:
@@ -331,7 +353,18 @@ def universal_strategy():
 
 def ad_strategy():
     st.write("Information and tools for the AD Strategy go here.")
+    st.sidebar.markdown("If you want to draw a molecule, Please use the [**Ketcher editor**](https://lifescience.opensource.epam.com/KetcherDemoSA/index.html) ↗️.")  # The arrow symbol points to the link
 
+    # Styling the header for instructions
+    st.sidebar.markdown("### Instructions to obtain SMILES from Ketcher:")
+
+    # Individual instructions with emphasis on key steps
+    st.sidebar.markdown("1. Draw your molecule in the **Ketcher editor**.")
+    st.sidebar.markdown("2. Press on the **Save As** option in Ketcher.")
+    st.sidebar.markdown("3. Select **SMILES** from the dropdown menu.")
+    st.sidebar.markdown("4. **Copy** the provided SMILES representation.")
+    st.sidebar.markdown("5. Return to this page and **paste** the SMILES in the box above.")
+    
 # Page Configuration
 st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 
