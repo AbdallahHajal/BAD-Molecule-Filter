@@ -303,11 +303,11 @@ def universal_strategy():
     
         output = pd.concat([df, predicted], axis=1)
     
-        st.sidebar.markdown('''## See your output in the following table:''')
-        st.sidebar.write(output)
+        st.markdown('''## See your output in the following table:''')
+        st.write(output)
     
         #======= show CSV file attachment
-        st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+        st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
     
     elif prediction:
          df2 = pd.read_csv(many_SMILES)
@@ -346,11 +346,11 @@ def universal_strategy():
     
          output = pd.concat([df2, predicted], axis=1)
     
-         st.sidebar.markdown('''## See your output in the following table:''')
-         st.sidebar.write(output)
+         st.markdown('''## See your output in the following table:''')
+         st.write(output)
     
          #======= show CSV file attachment
-         st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+         st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
 
 
 def ad_strategy():
