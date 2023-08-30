@@ -371,7 +371,7 @@ page = st.sidebar.radio("Choose a page:", ["Home", "Prediction Tool"])
 
 if page == "Home":
     home_page()
-elif page == "Universal Strategy":
+elif page == "Prediction Tool":
     universal_strategy()
 
 
