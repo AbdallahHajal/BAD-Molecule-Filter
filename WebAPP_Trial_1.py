@@ -259,7 +259,7 @@ def universal_strategy():
     st.markdown("---")  # Horizontal Line
     
     # Input SMILES strings directly
-    one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
+    one_or_few_SMILES = st.text_input('[','Enter SMILE Strings in single or double quotation separated by comma:',']',"['CCCCO']")
     st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
     
     # File uploader
