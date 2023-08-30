@@ -260,9 +260,9 @@ def universal_strategy():
     
     # Input SMILES strings directly
     # Input SMILES strings directly
-    one_or_few_SMILES = st.text_input('Enter SMILE Strings separated by comma:', 'CCCCO')
-    formatted_SMILES = '[' + ','.join([f"'{smile.strip()}'" for smile in one_or_few_SMILES.split(',')]) + ']'
-    st.markdown(f'Formatted Input: {formatted_SMILES}')
+    one_or_few_SMILES_input = st.text_input('Enter SMILE Strings separated by comma:', 'CCCCO')
+    split_smiles = [smile.strip() for smile in one_or_few_SMILES_input.split(',')]
+    st.markdown(f'Formatted Input: {split_smiles}')
 
     
     # File uploader
@@ -275,8 +275,8 @@ def universal_strategy():
 
 
 
-    if one_or_few_SMILES != "['CCCCO']":
-        df = pd.DataFrame(eval(one_or_few_SMILES), columns =['SMILES'])
+    if 'CCCCO' not in split_smiles:
+        df = pd.DataFrame(split_smiles, columns=['SMILES']))
         #========= function call to calculate 200 molecular descriptors using SMILES
         mordred_descriptors_df = All_Mordred_descriptors(df['SMILES'])
         Morgan_fpts = morgan_fpts(df['SMILES'])
