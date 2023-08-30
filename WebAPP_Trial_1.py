@@ -365,7 +365,7 @@ def universal_strategy():
 st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 
 # Title
-st.title('Consensus Aggregation Predictor: An accurate Predictor for Collodial Aggregation')
+st.title('An Accurate Predictor for Colloidal Aggregation')
 
 # Navigation sidebar
 page = st.sidebar.selectbox("Choose a page:", ["Home", "Prediction Tool"])
