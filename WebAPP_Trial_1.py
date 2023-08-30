@@ -304,7 +304,6 @@ def universal_strategy():
         majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
                             for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
         
-        
         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
     
         output = pd.concat([df, predicted], axis=1)
@@ -350,7 +349,6 @@ def universal_strategy():
          
          majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
                             for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
-        
         
         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
     
