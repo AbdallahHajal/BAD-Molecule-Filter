@@ -305,7 +305,7 @@ def universal_strategy():
                         for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
 
         # Map the predicted values
-      status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
+        status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
         majority_predictions = [status_mapping[pred] for pred in majority_predictions]
         
         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
@@ -356,7 +356,7 @@ def universal_strategy():
           
           predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
           
-          output = pd.concat([df, predicted], axis=1)
+          output = pd.concat([df2, predicted], axis=1)
           
           st.markdown('''## See your output in the following table:''')
           st.write(output)
