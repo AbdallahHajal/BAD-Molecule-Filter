@@ -350,19 +350,19 @@ def universal_strategy():
          majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
                             for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
         
-        predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
+         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
     
-        output = pd.concat([df2, predicted], axis=1)
-        status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
+         output = pd.concat([df2, predicted], axis=1)
+         status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
 
-        # Apply the mapping to the DataFrame
-        output = output.replace(status_mapping)
+         # Apply the mapping to the DataFrame
+         output = output.replace(status_mapping)
     
-        st.markdown('''## See your output in the following table:''')
-        st.write(output)
+         st.markdown('''## See your output in the following table:''')
+         st.write(output)
 
-        #======= show CSV file attachment
-        st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+         #======= show CSV file attachment
+         st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
 
 
     
