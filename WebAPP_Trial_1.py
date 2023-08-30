@@ -259,8 +259,11 @@ def universal_strategy():
     st.markdown("---")  # Horizontal Line
     
     # Input SMILES strings directly
-    one_or_few_SMILES = st.text_input('[','Enter SMILE Strings in single or double quotation separated by comma:',']',"['CCCCO']")
-    st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
+    one_or_few_SMILES = st.text_input('Enter SMILE Strings separated by comma:', 'CCCCO')
+    formatted_SMILES = f"[{','.join([f\"'{smile.strip()}'\" for smile in raw_SMILES.split(',')])}]"
+    one_or_few_SMILES=formatted_SMILES
+    st.markdown(f'Formatted Input: {formatted_SMILES}')
+    
     
     # File uploader
     many_SMILES = st.file_uploader("Upload your CSV file")
