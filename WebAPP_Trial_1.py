@@ -259,11 +259,11 @@ def universal_strategy():
     st.markdown("---")  # Horizontal Line
     
     # Input SMILES strings directly
+    # Input SMILES strings directly
     one_or_few_SMILES = st.text_input('Enter SMILE Strings separated by comma:', 'CCCCO')
-    formatted_SMILES = f"[{','.join([f\"'{smile.strip()}'\" for smile in raw_SMILES.split(',')])}]"
-    one_or_few_SMILES=formatted_SMILES
+    formatted_SMILES = '[' + ','.join([f"'{smile.strip()}'" for smile in one_or_few_SMILES.split(',')]) + ']'
     st.markdown(f'Formatted Input: {formatted_SMILES}')
-    
+
     
     # File uploader
     many_SMILES = st.file_uploader("Upload your CSV file")
