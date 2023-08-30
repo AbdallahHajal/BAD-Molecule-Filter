@@ -258,7 +258,7 @@ def universal_strategy():
     st.markdown("3. **Draw a Molecule** using Ketcher from the sidebar and obtain the SMILES strings.")
     st.markdown("---")  # Horizontal Line
     
-    one_or_few_SMILES = st.text_input('[','Enter SMILE Strings in single or double quotation separated by comma:',']',"['CCCCO']")
+    one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
     st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
     
     # File uploader
