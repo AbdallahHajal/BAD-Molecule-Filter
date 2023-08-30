@@ -258,6 +258,7 @@ def universal_strategy():
     st.markdown("3. **Draw a Molecule** using Ketcher from the sidebar and obtain the SMILES strings.")
     st.markdown("---")  # Horizontal Line
     
+    # Input SMILES strings directly
     one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
     st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
     
@@ -268,6 +269,8 @@ def universal_strategy():
     # Prediction button description and button
     st.markdown("""**If you upload your CSV file or entered the SMILE strings, click the button below to get the Aggregation prediction** """)
     prediction = st.button('Predict Agg status of molecules')
+
+
 
     if one_or_few_SMILES != "['CCCCO']":
         df = pd.DataFrame(eval(one_or_few_SMILES), columns =['SMILES'])
