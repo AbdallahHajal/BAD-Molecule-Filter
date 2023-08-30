@@ -80,7 +80,7 @@ def home_page():
 
     # Instructions on how to use the app
     st.subheader('How to Use this App')
-    st.markdown('You may use two methods for Aggregates prediction: **The Universal Strategy** and the **AD strategy**. Choose which method you want to use form the sidebar. Additional information can be found in the research article.')
+    st.markdown('To predict the aggregation behavior of your molecules, please select "Prediction Tool" from the dropdown menu in the sidebar. This method employs the Universal Strategy, which is based on the majority voting mechanism of three individual models, each constructed from large datasets. For a deeper understanding and additional details, please refer to the accompanying research article.')
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as f:
@@ -365,7 +365,7 @@ def universal_strategy():
 st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 
 # Title
-st.title('Consensus Aggregation Predictor: An accurate Predictor for Collodial Aggregation')
+st.title("<h1 style='text-align: center; color: red;'>Consensus Aggregation Predictor: An accurate Predictor for Collodial Aggregation</h1>", unsafe_allow_html=True)
 
 # Navigation sidebar
 page = st.sidebar.selectbox("Choose a page:", ["Home", "Prediction Tool"])
