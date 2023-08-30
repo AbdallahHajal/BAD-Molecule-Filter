@@ -360,16 +360,18 @@ def universal_strategy():
 
 
     
+# Page Configuration
 st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 
 # Title
 st.title('Consensus Aggregation Predictor: An accurate Predictor for Collodial Aggregation')
 
-# Navigation sidebar with buttons
-if st.sidebar.button("Home"):
-    home_page()
-elif st.sidebar.button("Prediction Tool"):
-    universal_strategy()
+# Navigation sidebar
+page = st.sidebar.radio("Choose a page:", ["Home", "Prediction Tool"])
 
+if page == "Home":
+    home_page()
+elif page == "Prediction Tool":
+    universal_strategy()
 
         
