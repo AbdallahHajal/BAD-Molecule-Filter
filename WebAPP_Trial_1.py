@@ -80,7 +80,7 @@ def home_page():
 
     # Instructions on how to use the app
     st.subheader('How to Use this App')
-    st.markdown('To predict the aggregation behavior of your molecules, please select "Prediction Tool" from the dropdown menu in the sidebar. This method employs the Universal Strategy, which is based on the majority voting mechanism of three individual models, each constructed from large datasets. For a deeper understanding and additional details, please refer to the accompanying research article.')
+    st.markdown('To predict the aggregation behavior of your molecules, please select "**Prediction Tool**" from the dropdown menu in the **sidebar**. This method employs the Universal Strategy, which is based on the majority voting mechanism of three individual models, each constructed from large datasets. For a deeper understanding and additional details, please refer to the accompanying research article.')
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as f:
@@ -368,7 +368,12 @@ st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 st.title('An Accurate Predictor for Colloidal Aggregation')
 
 # Navigation sidebar
-page = st.sidebar.selectbox("Choose a page:", ["Home", "Prediction Tool"])
+st.sidebar.markdown('<h2 style="color:#5a03fc;background-color:powderblue;border-radius:10px;text-align:center"> 'Welcome to CAP! </h2>',unsafe_allow_html=True)
+page = st.sidebar.selectbox("Choose from here:", ["Home", "Prediction Tool"])
+st.sidebar.markdown("""
+Use the dropdown above to navigate between the home page and the prediction tool. 
+Whether you're new or returning, we're here to help you assess the aggregation behavior of your molecules.
+""")
 
 if page == "Home":
     home_page()
