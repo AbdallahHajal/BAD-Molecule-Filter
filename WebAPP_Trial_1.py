@@ -302,13 +302,16 @@ def universal_strategy():
         Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
         
         majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
-                            for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
-        
+                        for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
+
+        # Map the predicted values
+        status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
+        majority_predictions = [status_mapping[pred] for pred in majority_predictions]
         
         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
-    
+        
         output = pd.concat([df, predicted], axis=1)
-    
+        
         st.markdown('''## See your output in the following table:''')
         st.write(output)
     
@@ -345,15 +348,18 @@ def universal_strategy():
          Agg_Prediction_Shoi = model_Shoichet.predict(X_test_scaled_Shoi) 
          
          majority_predictions = [majority_vote([pred_cru, pred_lac, pred_shoi]) 
-                             for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
-         
-         
-         predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
-    
-         output = pd.concat([df2, predicted], axis=1)
-    
-         st.markdown('''## See your output in the following table:''')
-         st.write(output)
+                        for pred_cru, pred_lac, pred_shoi in zip(Agg_Prediction_Cru, Agg_Prediction_Lac, Agg_Prediction_Shoi)]
+
+          # Map the predicted values
+          status_mapping = {0: "Non-Aggregator", 1: "Aggregator"}
+          majority_predictions = [status_mapping[pred] for pred in majority_predictions]
+          
+          predicted = pd.DataFrame(majority_predictions, columns=['Predicted Agg status'])
+          
+          output = pd.concat([df, predicted], axis=1)
+          
+          st.markdown('''## See your output in the following table:''')
+          st.write(output)
     
          #======= show CSV file attachment
          st.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
