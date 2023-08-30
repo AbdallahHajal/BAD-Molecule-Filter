@@ -258,12 +258,8 @@ def universal_strategy():
     st.markdown("3. **Draw a Molecule** using Ketcher from the sidebar and obtain the SMILES strings.")
     st.markdown("---")  # Horizontal Line
     
-    # Input SMILES strings directly
-    # Input SMILES strings directly
-    one_or_few_SMILES_input = st.text_input('Enter SMILE Strings separated by comma:', 'CCCCO')
-    split_smiles = [smile.strip() for smile in one_or_few_SMILES_input.split(',')]
-    st.markdown(f'Formatted Input: {split_smiles}')
-
+    one_or_few_SMILES = st.text_input('[','Enter SMILE Strings in single or double quotation separated by comma:',']',"['CCCCO']")
+    st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
     
     # File uploader
     many_SMILES = st.file_uploader("Upload your CSV file")
@@ -273,10 +269,8 @@ def universal_strategy():
     st.markdown("""**If you upload your CSV file or entered the SMILE strings, click the button below to get the Aggregation prediction** """)
     prediction = st.button('Predict Agg status of molecules')
 
-
-
-    if 'CCCCO' not in split_smiles:
-        df = pd.DataFrame(split_smiles, columns=['SMILES']))
+    if one_or_few_SMILES != "['CCCCO']":
+        df = pd.DataFrame(eval(one_or_few_SMILES), columns =['SMILES'])
         #========= function call to calculate 200 molecular descriptors using SMILES
         mordred_descriptors_df = All_Mordred_descriptors(df['SMILES'])
         Morgan_fpts = morgan_fpts(df['SMILES'])
