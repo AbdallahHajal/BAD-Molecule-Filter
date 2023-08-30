@@ -368,7 +368,7 @@ st.set_page_config(page_title='Aggregation Prediction App', layout='wide')
 st.title('An Accurate Predictor for Colloidal Aggregation')
 
 # Navigation sidebar
-st.sidebar.markdown('<h2 style="color:#5a03fc;background-color:powderblue;border-radius:10px;text-align:center"> 'Welcome to CAP! </h2>',unsafe_allow_html=True)
+st.sidebar.markdown('<h2 style="color:#5a03fc;background-color:powderblue;border-radius:10px;text-align:center"> Welcome to CAP! </h2>',unsafe_allow_html=True)
 page = st.sidebar.selectbox("Choose from here:", ["Home", "Prediction Tool"])
 st.sidebar.markdown("""
 Use the dropdown above to navigate between the home page and the prediction tool. 
