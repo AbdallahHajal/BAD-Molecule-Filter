@@ -327,7 +327,7 @@ def universal_strategy():
 
 
 
-    if one_or_few_SMILES is not None:
+if one_or_few_SMILES is not None:
     try:
         # Convert the string representation of the list to an actual list
         smiles_list = eval(one_or_few_SMILES)
@@ -381,7 +381,7 @@ def universal_strategy():
                 elif avg_prob > 0.7:
                     compound_predictions.append("Aggregator")
                 else:
-                    compound_predictions.append("Ambiguous"))
+                    compound_predictions.append("Ambiguous")
 
             predicted = pd.DataFrame(compound_predictions, columns=['Predicted Agg status'])
             output = pd.concat([df, predicted], axis=1)
@@ -438,7 +438,6 @@ elif prediction:
             compound_predictions.append("Aggregator")
         else:
             compound_predictions.append("Ambiguous")
-            
 
     predicted = pd.DataFrame(compound_predictions, columns=['Predicted Agg status'])
     output = pd.concat([df2, predicted], axis=1)
