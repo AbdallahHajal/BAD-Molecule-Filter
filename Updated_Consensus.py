@@ -67,29 +67,6 @@ import requests
 import pandas as pd
 import io
 
-# Replace with your direct Dropbox link
-url = "https://dl.dropboxusercontent.com/scl/fi/7oxh3kmfxynj17cke3eqd/saved_Cru_dataframe.csv?rlkey=iaeu0d19ccjwd8em3ilcedrl2&dl=0"
-
-response = requests.get(url)
-assert response.status_code == 200, 'Wrong status code'
-
-df_cru = pd.read_csv(io.StringIO(response.text))
-
-url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
-
-response = requests.get(url)
-assert response.status_code == 200, 'Wrong status code'
-
-df_Lac = pd.read_csv(io.StringIO(response.text))
-
-
-url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
-
-response = requests.get(url)
-assert response.status_code == 200, 'Wrong status code'
-
-df_Shoi = pd.read_csv(io.StringIO(response.text))
-
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as a:
         model_Cruz = pickle.load(a)
@@ -357,6 +334,28 @@ if one_or_few_SMILES is not None:
             X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
             X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
             X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
+          # Replace with your direct Dropbox link
+            url = "https://dl.dropboxusercontent.com/scl/fi/7oxh3kmfxynj17cke3eqd/saved_Cru_dataframe.csv?rlkey=iaeu0d19ccjwd8em3ilcedrl2&dl=0"
+            
+            response = requests.get(url)
+            assert response.status_code == 200, 'Wrong status code'
+            
+            df_cru = pd.read_csv(io.StringIO(response.text))
+            
+            url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
+            
+            response = requests.get(url)
+            assert response.status_code == 200, 'Wrong status code'
+            
+            df_Lac = pd.read_csv(io.StringIO(response.text))
+            
+            
+            url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
+            
+            response = requests.get(url)
+            assert response.status_code == 200, 'Wrong status code'
+            
+            df_Shoi = pd.read_csv(io.StringIO(response.text))
 
             # Process each dataset
             sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
@@ -413,6 +412,28 @@ elif prediction:
     X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
     X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
     X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
+    # Replace with your direct Dropbox link
+    url = "https://dl.dropboxusercontent.com/scl/fi/7oxh3kmfxynj17cke3eqd/saved_Cru_dataframe.csv?rlkey=iaeu0d19ccjwd8em3ilcedrl2&dl=0"
+    
+    response = requests.get(url)
+    assert response.status_code == 200, 'Wrong status code'
+    
+    df_cru = pd.read_csv(io.StringIO(response.text))
+    
+    url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
+    
+    response = requests.get(url)
+    assert response.status_code == 200, 'Wrong status code'
+    
+    df_Lac = pd.read_csv(io.StringIO(response.text))
+    
+    
+    url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
+    
+    response = requests.get(url)
+    assert response.status_code == 200, 'Wrong status code'
+    
+    df_Shoi = pd.read_csv(io.StringIO(response.text))
 
     # Process each dataset
     sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
