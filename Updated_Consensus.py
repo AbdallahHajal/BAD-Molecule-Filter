@@ -67,25 +67,39 @@ import gdown
 import pandas as pd
 import io
 
+import gdown
+import pandas as pd
+import os
+
 # Define the file IDs
 file_id_cru = '1Cq5cyZ_bLoJkb4g1tGWFGSO5ZhyNwMTk'
 file_id_Lac = '1w3vAkY5EMWgkM8n1dBupALJUiVPo5vrW'
-file_id_Shoi = '1VtQcLWcLVedhI94EG1NOhcIFk9UK1NgF'
+file_id_Shoi ='1VtQcLWcLVedhI94EG1NOhcIFk9UK1NgF'
 
 # Define the download URLs
 url_cru = f'https://drive.google.com/uc?id={file_id_cru}'
 url_Lac = f'https://drive.google.com/uc?id={file_id_Lac}'
 url_Shoi = f'https://drive.google.com/uc?id={file_id_Shoi}'
 
-# Download the datasets into memory
-response_cru = gdown.download(url_cru, None, quiet=False)
-response_Lac = gdown.download(url_Lac, None, quiet=False)
-response_Shoi = gdown.download(url_Shoi, None, quiet=False)
+# Temporary file paths
+temp_file_cru = "temp_cru.csv"
+temp_file_Lac = "temp_Lac.csv"
+temp_file_Shoi = "temp_Shoi.csv"
+
+# Download the datasets to temporary files
+gdown.download(url_cru, temp_file_cru, quiet=False)
+gdown.download(url_Lac, temp_file_Lac, quiet=False)
+gdown.download(url_Shoi, temp_file_Shoi, quiet=False)
 
 # Read the datasets into pandas DataFrames
-df_cru = pd.read_csv(io.BytesIO(response_cru))
-df_Lac = pd.read_csv(io.BytesIO(response_Lac))
-df_Shoi = pd.read_csv(io.BytesIO(response_Shoi))
+df_cru = pd.read_csv(temp_file_cru)
+df_Lac = pd.read_csv(temp_file_Lac)
+df_Shoi = pd.read_csv(temp_file_Shoi)
+
+# Optionally, remove the temporary files after reading
+os.remove(temp_file_cru)
+os.remove(temp_file_Lac)
+os.remove(temp_file_Shoi)
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as a:
