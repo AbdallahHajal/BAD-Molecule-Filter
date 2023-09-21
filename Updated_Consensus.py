@@ -63,26 +63,29 @@ from lightgbm import LGBMClassifier
 import gdown
 import pandas as pd
 
-# Define the file IDs (replace with your actual file IDs)
+import gdown
+import pandas as pd
+import io
+
+# Define the file IDs
 file_id_cru = '1Cq5cyZ_bLoJkb4g1tGWFGSO5ZhyNwMTk'
 file_id_Lac = '1w3vAkY5EMWgkM8n1dBupALJUiVPo5vrW'
-file_id_Shoi ='1VtQcLWcLVedhI94EG1NOhcIFk9UK1NgF'
+file_id_Shoi = '1VtQcLWcLVedhI94EG1NOhcIFk9UK1NgF'
 
 # Define the download URLs
 url_cru = f'https://drive.google.com/uc?id={file_id_cru}'
 url_Lac = f'https://drive.google.com/uc?id={file_id_Lac}'
 url_Shoi = f'https://drive.google.com/uc?id={file_id_Shoi}'
 
-# Download the datasets
-gdown.download(url_cru, 'saved_Cru_dataframe.csv', quiet=False)
-gdown.download(url_Lac, 'saved_LAC_dataframe.csv', quiet=False)
-gdown.download(url_Shoi, 'saved_Shoi_dataframe.csv', quiet=False)
+# Download the datasets into memory
+response_cru = gdown.download(url_cru, None, quiet=False)
+response_Lac = gdown.download(url_Lac, None, quiet=False)
+response_Shoi = gdown.download(url_Shoi, None, quiet=False)
 
-
-
-df_cru = pd.read_csv(r"C:\Users\Dell\saved_Cru_dataframe.csv")
-df_Lac = pd.read_csv(r"C:\Users\Dell\saved_LAC_dataframe.csv")
-df_Shoi = pd.read_csv(r"C:\Users\Dell\saved_Shoi_dataframe.csv")
+# Read the datasets into pandas DataFrames
+df_cru = pd.read_csv(io.BytesIO(response_cru))
+df_Lac = pd.read_csv(io.BytesIO(response_Lac))
+df_Shoi = pd.read_csv(io.BytesIO(response_Shoi))
 
 
 with open('model_trial_CRUUUZAAAIN.pkl','rb') as a:
