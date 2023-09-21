@@ -341,14 +341,17 @@ def universal_strategy():
                 assert response.status_code == 200, 'Wrong status code'
                 
                 df_cru = pd.read_csv(io.StringIO(response.text))
-                
+                sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
+                del df_cru
+
                 url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
                 
                 response = requests.get(url)
                 assert response.status_code == 200, 'Wrong status code'
                 
                 df_Lac = pd.read_csv(io.StringIO(response.text))
-                
+                sims_Lac = compute_similarity_and_AD(df_Lac, descriptor_columns, target_col, X_test_Lactamase)
+                del df_Lac
                 
                 url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
                 
@@ -356,12 +359,11 @@ def universal_strategy():
                 assert response.status_code == 200, 'Wrong status code'
                 
                 df_Shoi = pd.read_csv(io.StringIO(response.text))
-    
-                # Process each dataset
-                sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
-                sims_Lac = compute_similarity_and_AD(df_Lac, descriptor_columns, target_col, X_test_Lactamase)
                 sims_Shoi = compute_similarity_and_AD(df_Shoi, descriptor_columns, target_col, X_test_Shoichet)
-    
+                del df_Shoi
+                dataframes = [sims_Shoi, sims_Lac, sims_cru]
+                indices_list = get_applicable_indices(dataframes)
+              
                 # Prediction and consensus
                 compound_predictions = []
                 filtered_true_labels = []
