@@ -298,25 +298,18 @@ def universal_strategy():
     
     # Input SMILES strings directly
     one_or_few_SMILES = st.text_input('Enter SMILE Strings in single or double quotation separated by comma:',"['CCCCO']")
-    st.markdown('''`or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:`''')
-    
-    # File uploader
+    st.markdown('''or upload SMILE strings in CSV format, note that SMILE strings of the molecules should be in 'SMILES' column:''')
     many_SMILES = st.file_uploader("Upload your CSV file")
-    
     st.markdown("---")  # Horizontal Line
-    # Prediction button description and button
-    st.markdown("""**If you upload your CSV file or entered the SMILE strings, click the button below to get the Aggregation prediction** """)
     prediction = st.button('Predict Agg status of molecules')
 
 
 
-    if one_or_few_SMILES is not None:
+    if prediction:
         try:
-            # Convert the string representation of the list to an actual list
-            smiles_list = eval(one_or_few_SMILES)
-            
-            # Check if the provided input is a valid list of SMILES notations
-            if isinstance(smiles_list, list) and all(isinstance(smile, str) for smile in smiles_list):
+            if one_or_few_SMILES:
+              smiles_list = eval(one_or_few_SMILES)
+              if isinstance(smiles_list, list) and all(isinstance(smile, str) for smile in smiles_list):
                 df = pd.DataFrame(smiles_list, columns=['SMILES'])
                 
                 # Function call to calculate 200 molecular descriptors using SMILES
@@ -395,84 +388,83 @@ def universal_strategy():
                 st.sidebar.markdown('''## See your output in the following table:''')
                 st.sidebar.write(output)
                 st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
-    
-            else:
+                
+              else:
                 raise ValueError("Provided input is not a valid list of SMILES notations.")
-        except Exception as e:
-            print(f"Error: {e}")
-
-    elif prediction:
-        df2 = pd.read_csv(many_SMILES)
-        mordred_descriptors_df = All_Mordred_descriptors(df2['SMILES'])
-        Morgan_fpts = morgan_fpts(df2['SMILES'])
-        Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts, columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
-        exclude_cols = ['Agg status']
-        cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
-        Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
-        cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
-        Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
-        X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
-        X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
-        X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
-        # Replace with your direct Dropbox link
-        url = "https://dl.dropboxusercontent.com/scl/fi/7oxh3kmfxynj17cke3eqd/saved_Cru_dataframe.csv?rlkey=iaeu0d19ccjwd8em3ilcedrl2&dl=0"
-        
-        response = requests.get(url)
-        assert response.status_code == 200, 'Wrong status code'
-        
-        df_cru = pd.read_csv(io.StringIO(response.text))
-        
-        url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
-        
-        response = requests.get(url)
-        assert response.status_code == 200, 'Wrong status code'
-        
-        df_Lac = pd.read_csv(io.StringIO(response.text))
-        
-        
-        url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
-        
-        response = requests.get(url)
-        assert response.status_code == 200, 'Wrong status code'
-        
-        df_Shoi = pd.read_csv(io.StringIO(response.text))
-    
-        # Process each dataset
-        sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
-        sims_Lac = compute_similarity_and_AD(df_Lac, descriptor_columns, target_col, X_test_Lactamase)
-        sims_Shoi = compute_similarity_and_AD(df_Shoi, descriptor_columns, target_col, X_test_Shoichet)
-    
-        # Prediction and consensus
-        compound_predictions = []
-        filtered_true_labels = []
-    
-        for i in range(len(X_test_Cruzain)):
-            probabilities = []
-    
-            if i in indices_list[0]:
-                probabilities.append(model_Shoichet.predict_proba([X_test_Shoichet[i]])[0][1])
-            if i in indices_list[1]:
-                probabilities.append(model_Lac.predict_proba([X_test_Lactamase[i]])[0][1])
-            if i in indices_list[2]:
-                probabilities.append(model_Cru.predict_proba([X_test_Cruzain[i]])[0][1])
-    
-            if not probabilities:
-                continue
-    
-            avg_prob = np.mean(probabilities)
-    
-            if avg_prob < 0.3:
-                compound_predictions.append('Non Aggregator')
-            elif avg_prob > 0.7:
-                compound_predictions.append("Aggregator")
-            else:
-                compound_predictions.append("Ambiguous")
-    
-        predicted = pd.DataFrame(compound_predictions, columns=['Predicted Agg status'])
-        output = pd.concat([df2, predicted], axis=1)
-        st.sidebar.markdown('''## See your output in the following table:''')
-        st.sidebar.write(output)
-        st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+            elif many_SMILES:
+                df2 = pd.read_csv(many_SMILES)
+                mordred_descriptors_df = All_Mordred_descriptors(df2['SMILES'])
+                Morgan_fpts = morgan_fpts(df2['SMILES'])
+                Morgan_fingerprints_df = pd.DataFrame(Morgan_fpts, columns=['Col_{}'.format(i) for i in range(Morgan_fpts.shape[1])])
+                exclude_cols = ['Agg status']
+                cols_to_add = [col for col in mordred_descriptors_df.columns if col not in exclude_cols]
+                Morgan_fingerprints_df[cols_to_add] = mordred_descriptors_df[cols_to_add]
+                cat_cols = Morgan_fingerprints_df.select_dtypes(include=['object']).columns.tolist()
+                Morgan_fingerprints_df = Morgan_fingerprints_df.drop(cat_cols, axis=1)
+                X_test_Cruzain = Morgan_fingerprints_df[descriptor_columns_cru]
+                X_test_Lactamase = Morgan_fingerprints_df[descriptor_columns_Lac]
+                X_test_Shoichet = Morgan_fingerprints_df[descriptor_columns_Shoi]
+                # Replace with your direct Dropbox link
+                url = "https://dl.dropboxusercontent.com/scl/fi/7oxh3kmfxynj17cke3eqd/saved_Cru_dataframe.csv?rlkey=iaeu0d19ccjwd8em3ilcedrl2&dl=0"
+                
+                response = requests.get(url)
+                assert response.status_code == 200, 'Wrong status code'
+                
+                df_cru = pd.read_csv(io.StringIO(response.text))
+                
+                url = "https://dl.dropboxusercontent.com/scl/fi/gx60lo41wxn4o7arr87s6/saved_LAC_dataframe.csv?rlkey=tb1bis3ssx1yahm1e8rps7os9&dl=0"
+                
+                response = requests.get(url)
+                assert response.status_code == 200, 'Wrong status code'
+                
+                df_Lac = pd.read_csv(io.StringIO(response.text))
+                
+                
+                url = "https://dl.dropboxusercontent.com/scl/fi/79t1oeohds08peolxdzfg/saved_Shoi_dataframe.csv?rlkey=r1whtndb3ftct86atk71qwyg6&dl=0"
+                
+                response = requests.get(url)
+                assert response.status_code == 200, 'Wrong status code'
+                
+                df_Shoi = pd.read_csv(io.StringIO(response.text))
+            
+                # Process each dataset
+                sims_cru = compute_similarity_and_AD(df_Cru, descriptor_columns, target_col, X_test_Cruzain)
+                sims_Lac = compute_similarity_and_AD(df_Lac, descriptor_columns, target_col, X_test_Lactamase)
+                sims_Shoi = compute_similarity_and_AD(df_Shoi, descriptor_columns, target_col, X_test_Shoichet)
+            
+                # Prediction and consensus
+                compound_predictions = []
+                filtered_true_labels = []
+            
+                for i in range(len(X_test_Cruzain)):
+                    probabilities = []
+            
+                    if i in indices_list[0]:
+                        probabilities.append(model_Shoichet.predict_proba([X_test_Shoichet[i]])[0][1])
+                    if i in indices_list[1]:
+                        probabilities.append(model_Lac.predict_proba([X_test_Lactamase[i]])[0][1])
+                    if i in indices_list[2]:
+                        probabilities.append(model_Cru.predict_proba([X_test_Cruzain[i]])[0][1])
+            
+                    if not probabilities:
+                        continue
+            
+                    avg_prob = np.mean(probabilities)
+            
+                    if avg_prob < 0.3:
+                        compound_predictions.append('Non Aggregator')
+                    elif avg_prob > 0.7:
+                        compound_predictions.append("Aggregator")
+                    else:
+                        compound_predictions.append("Ambiguous")
+            
+                predicted = pd.DataFrame(compound_predictions, columns=['Predicted Agg status'])
+                output = pd.concat([df2, predicted], axis=1)
+                st.sidebar.markdown('''## See your output in the following table:''')
+                st.sidebar.write(output)
+                st.sidebar.markdown(file_download(output, "predicted_AggStatus.csv"), unsafe_allow_html=True)
+         except Exception as e:
+           st.write(f"Error: {e}")
     
 # Page Configuration
 # Page Configuration
