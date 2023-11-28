@@ -1,22 +1,17 @@
-##Project Title: Accurate Aggregates Predictor
-Brief Description
-The Accurate Aggregates Predictor is a machine learning tool specifically developed to revolutionize drug discovery by precisely identifying Small Colloidally Aggregating Molecules (SCAMs).
-Utilizing state-of-the-art Decision Tree Ensemble Methods, this tool improves the accuracy of SCAM detection. Three Modeling streatgies were adopted individual, consensus, and collective, each tailored for a need.
-This tool plays a vital role in significantly 
-enhancing the efficiency of hit rate optimization while concurrently minimizing the time and resources spent on testing and validation in the critical early stages of drug discovery.
+# Accurate Aggregates Predictor
 
-<p align="center">
-  <img align="middle" src="figure 2.JPG" alt="workflow" width="800" class="center">
- </p>
+## Brief Description
+The Accurate Aggregates Predictor is a specialized machine learning tool crafted to revolutionize the field of drug discovery. It achieves this by accurately identifying Small Colloidally Aggregating Molecules (SCAMs). Through the adoption of advanced Decision Tree Ensemble Methods, this tool significantly improves the precision of SCAM detection. Our approach is characterized by the integration of three distinct modeling strategies - individual, consensus, and collective - each designed to meet specific needs. This tool is instrumental in enhancing the efficiency of hit rate optimization and substantially reduces the time and resources required for testing and validation in the crucial early stages of drug discovery.
 
- 
-##For direct web use: 
-please visit this link below and follow the instructions provided
+## Workflow
+[Include a brief explanation of the workflow or steps involved in using the tool here. If you have a diagram or flowchart, you can insert it here using the Markdown image syntax: `![Workflow Diagram](URL_of_the_diagram)`]
 
-##Contact Information
-For any inquiries or assistance, please contact me at [Abdallah.abouhajal@gmail.com].
+## Direct Web Use
+For convenient access to the Accurate Aggregates Predictor, please visit the following link and adhere to the instructions provided:
+[Direct Link to Web Server](URL_of_the_web_server)
 
+## Contact Information
+Should you have any questions or require assistance, feel free to reach out at [Abdallah.abouhajal@gmail.com](mailto:Abdallah.abouhajal@gmail.com).
 
-##Acknowledgments
-For more information, please refer to our paper:
-............................................................................
+## Acknowledgments
+For a deeper insight into the methodology and findings of this project, please consult our paper: [Link to the Paper or Full Citation](URL_of_the_paper)
