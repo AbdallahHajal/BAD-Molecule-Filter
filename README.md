@@ -6,7 +6,7 @@ This tool plays a vital role in significantly
 enhancing the efficiency of hit rate optimization while concurrently minimizing the time and resources spent on testing and validation in the critical early stages of drug discovery.
 
 <p align="center">
-  <img align="middle" src="/docs/Fig1.png" alt="workflow" width="800" class="center">
+  <img align="middle" src="figure 2.JPG" alt="workflow" width="800" class="center">
  </p>
 
  
