@@ -1,8 +1,7 @@
 # Accurate Aggregates Predictor
 
 ## Brief Description
-The Accurate Aggregates Predictor is a specialized machine learning tool crafted to revolutionize the field of drug discovery. It achieves this by accurately identifying Small Colloidally Aggregating Molecules (SCAMs). Through the adoption of advanced Decision Tree Ensemble Methods, this tool significantly improves the precision of SCAM detection. Our approach is characterized by the integration of three distinct modeling strategies - individual, consensus, and collective - each designed to meet specific needs. This tool is instrumental in enhancing the efficiency of hit rate optimization and substantially reduces the time and resources required for testing and validation in the crucial early stages of drug discovery.
-
+The Accurate Aggregates Predictor is a machine learning tool specifically developed to revolutionize drug discovery by precisely identifying Small Colloidally Aggregating Molecules (SCAMs). Utilizing state-of-the-art Decision Tree Ensemble Methods, this tool improves the accuracy of SCAM detection. Three Modeling streatgies were adopted individual, consensus, and collective, each tailored for a need. This tool plays a vital role in significantly enhancing the efficiency of hit rate optimization while concurrently minimizing the time and resources spent on testing and validation in the critical early stages of drug discovery.
 ## Workflow
 [Include a brief explanation of the workflow or steps involved in using the tool here. If you have a diagram or flowchart, you can insert it here using the Markdown image syntax: `![Workflow Diagram](URL_of_the_diagram)`]
 
