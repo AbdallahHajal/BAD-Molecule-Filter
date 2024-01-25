@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAD Molecule Filter</title> <!-- Updated title -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+    
+        .container {
+            max-width: 960px;
+            margin: auto;
+            padding: 0 20px;
+        }
+        .container h3 {
+            text-align: center;
+        }
+    
+        header {
+            background: #7ba350;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+    
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+    
+        .main {
+            padding: 30px 0;
+        }
+    
+        .main h2 {
+            color: #333;
+            text-align: center;
+            font-size: 2em;
+        }
+    
+        .main p {
+            font-size: 18px;
+            line-height: 1.6em;
+            text-align: center;
+        }
+    
+        .main .button {
+            font-size: 18px;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #e8491d;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+    
+        .main .button:hover {
+            background-color: #333;
+        }
+    
+        .main form {
+            margin-top: 20px;
+            text-align: center;
+        }
+    
+        .main form input, .main form select {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    
+        .main form button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        footer {
+            padding: 20px 0;
+            background-color: #50a35c;
+            color: white;
+            text-align: center;
+        }
+    
+        footer p {
+            margin: 0;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+    
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+    
+        th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+        }
+    
+        td {
+            padding: 15px;
+            text-align: left;
+        }
+    
+        tbody tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+    
+        tbody tr:hover {
+            background-color: #ddd;
+        }
+    
+        /* Loader Styles */
+        .loader {
+    display: none; /* Hidden by default */
+    margin: 20px auto;
+    border: 6px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 6px solid #3498db;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+/* Visible when the 'active' class is added */
+.loader.active {
+    display: block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+    
+        /* Message Styles */
+        .message {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    
+        /* Additional Styling */
+        input[type="text"], input[type="file"] {
+            width: 70%;
+        }
+    
+        select {
+            width: calc(30% - 22px);
+            display: inline-block;
+        }
+    
+        button {
+            width: 28%;
+            background-color: #7ba350;
+            color: white;
+            font-weight: bold;
+        }
+    
+        button:hover {
+            background-color: #689f38;
+        }
+        .form-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.form-container input, .form-container select, .form-container button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.form-container button {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #45a049;
+}
+
+.form-container select {
+    cursor: pointer;
+}
+
+.form-container h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.model-option {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .model-option:hover {
+            transform: scale(1.05);
+        }
+
+
+        /* Apply the model colors to the select options */
+        select[name="model_type"] option[value="IM"] {color: #000000; }
+        select[name="model_type"] option[value="CM"] {color: #050000; }
+        select[name="model_type"] option[value="MM"] {color: #000000; }
+
+        /* Additional user-friendly enhancements */
+        select[name="model_type"] {
+            font-weight: bold;
+            font-family:cursive;
+            text-align: center;
+        }
+
+        /* Styles for results section */
+        .results-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .message.success {
+    color: #28a745; /* success color, for example green */
+    font-weight: bold;
+}
+input[type="text"]:focus,
+input[type="file"]:focus,
+select:focus {
+    outline: none;
+    border: 2px solid #7ba350;
+}
+
+input::placeholder {
+    color: #aaa;
+    font-style: italic;
+}
+button:active {
+    transform: translateY(2px);
+}
+.form-container {
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+@media (max-width: 768px) {
+    input[type="text"], input[type="file"], select, button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+.loader {
+    display: block; /* Change this to 'block' when loading starts */
+    margin: 30px auto;
+}
+th:hover {
+    cursor: pointer;
+    background-color: #689f38;
+}
+html {
+    scroll-behavior: smooth;
+}
+/* Hide the default checkbox and radio button */
+input[type="checkbox"], input[type="radio"] {
+    display: none;
+}
+
+/* Create a custom box for checkboxes */
+input[type="checkbox"] + label:before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 3px;
+    border: 2px solid #7ba350;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+/* Style the checkbox when it is checked */
+input[type="checkbox"]:checked + label:before {
+    background-color: #7ba350;
+    border-color: #689f38;
+}
+
+/* Add a "checkmark" when the checkbox is checked */
+input[type="checkbox"]:checked + label:after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    margin-left: -16px;
+    margin-top: 2px;
+}
+
+/* Create a custom radio button */
+input[type="radio"] + label:before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border-radius: 50%;
+    border: 2px solid #7ba350;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+/* Style the radio button when it is checked */
+input[type="radio"]:checked + label:before {
+    background-color: #7ba350;
+    border-color: #689f38;
+}
+
+/* Add a "dot" when the radio button is checked */
+input[type="radio"]:checked + label:after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    margin: 3px auto;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Adjust label position for custom checkbox and radio button */
+label {
+    position: relative;
+    padding-left: 5px;
+    cursor: pointer;
+}
+
+
+    </style>    
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><span class="highlight">BAD</span> Molecule Filter</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li class="current"><a href="#">Home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <section class="main">
+        <div class="container">
+            <h2>Welcome to the BAD Molecule Filter</h2>
+            <p>Welcome to the BAD Molecule filter, the Boosted Aggregation Detector. This tool employs three distinct frameworks to assist researchers in various stages of drug discovery to predict aggregate properties. Each framework is designed with a specific focus to cater to different needs within the drug discovery process. For in-depth insights and methodologies, please refer to our comprehensive publication.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Frameworks</th>
+                        <th>Explanation</th>
+                        <th>Best Usage Scenario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Individual-Dataset Models (IMs)</td>
+                        <td>Provides detailed analysis based on specific datasets; tailored for advanced analysis.</td>
+                        <td>Later-stage research where dataset-specific knowledge is crucial for decision-making.</td>
+                    </tr>
+                    <tr>
+                        <td>Consensus Model (CM)</td>
+                        <td>Integrates multiple datasets for broad coverage; ideal for preliminary screening.</td>
+                        <td>Early-stage filtration to screen a diverse array of compounds.</td>
+                    </tr>
+                    <tr>
+                        <td>Merged-Dataset Models (MMs)</td>
+                        <td>Combines comprehensive datasets to handle complex compounds with high accuracy.</td>
+                        <td>Complex scenarios involving intricate compounds where robust predictions are required.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Analyze Your Molecule</h3>
+            <p>Enter your SMILES string below or upload a file to start the analysis.</p>
+            <div class="form-container">
+                <h3>Analyze SMILES String</h3>
+                <form id="smilesForm">
+                    <input type="text" name="smiles" placeholder="Enter SMILES strings" required>
+                    <select name="model_type" required>
+                        <option value="IM" class="model-im">Individual Model</option>
+                        <option value="CM" class="model-cm">Consensus Model</option>
+                        <option value="MM" class="model-mm">Merged Model</option>
+                    </select>
+                    <button type="submit" class="button">Analyze</button>
+                </form>
+            </div>
+            <!-- File upload form -->
+            <div class="form-container">
+                <h3>Upload File for Analysis</h3>
+                <form id="fileForm" action="/upload_file" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" required>
+                    <select name="model_type" required>
+                        <option value="IM">Individual Model</option>
+                        <option value="CM">Consensus Model</option>
+                        <option value="MM">Merged Model</option>
+                    </select>
+                    <button type="submit" class="button">Upload File</button>
+                </form>
+            </div>
+        
+            <div id="results" class="results-container"></div>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; 2024 BAD Molecule Filter. All rights reserved.</p>
+    </footer>
+    <script>
+        $(document).ready(function () {
+            // Function to display loading message
+            function showLoadingMessage() {
+                $('#results').html('<div id="loadingMessage">Analyzing data, please wait...</div>');
+            }
+    
+            // Function to hide loading message
+            function hideLoadingMessage() {
+                $('#loadingMessage').remove();
+            }
+    
+            // Function to display results in a table format
+            function displayResultsAsTable(data) {
+                var table = '<table class="resultsTable">';
+                data.forEach(function (row, index) {
+                    table += '<tr>';
+                    if (index === 0) {
+                        // Add header row
+                        Object.keys(row).forEach(function (key) {
+                            table += '<th>' + key + '</th>';
+                        });
+                        table += '</tr><tr>';
+                    }
+                    // Add data rows
+                    Object.values(row).forEach(function (value) {
+                        table += '<td>' + value + '</td>';
+                    });
+                    table += '</tr>';
+                });
+                table += '</table>';
+                var successMessage = '<div class="message success">Analysis completed successfully.</div>';
+                $('#results').html(successMessage + table);
+            }
+    
+            // Handle SMILES form submission
+            $('#smilesForm').submit(function (event) {
+                event.preventDefault();
+                showLoadingMessage();
+                var smiles = $('input[name="smiles"]').val();
+                var modelType = $('select[name="model_type"]').val();
+                $.ajax({
+                    url: '/predict',
+                    type: 'POST',
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify({ smiles: smiles, model_type: modelType }),
+                    success: function (html) {
+                        hideLoadingMessage();
+                        $('#results').html(html);
+                    },
+                    error: function (error) {
+                        hideLoadingMessage();
+                        $('#results').html('<p>Error processing request. Please try again later.</p>');
+                    }
+                });
+            });
+    
+            // Handle file form submission
+            $('#fileForm').submit(function (event) {
+                event.preventDefault();
+                showLoadingMessage();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '/upload_file',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        hideLoadingMessage();
+                        displayResultsAsTable(response.data);
+                    },
+                    error: function (error) {
+                        hideLoadingMessage();
+                        $('#results').html('<p>Error processing file upload. Please try again later.</p>');
+                    }
+                });
+            });
+        });
+    </script>    
+    </body>
+    </html>
