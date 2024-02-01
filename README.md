@@ -10,6 +10,9 @@ The BAD Molecule Filter is a machine learning tool specifically developed to rev
 For convenient access to the Accurate Aggregates Predictor, please visit the following link and adhere to the instructions provided:
 [Direct Link to Web Server](URL_of_the_web_server)
 
+## for using (local host)
+The model was also release for users can also use this filter directly on their own devices. please follow the **Installaion guide.ipynb** 
+
 ## Contact Information
 Should you have any questions or require assistance, feel free to reach out at [Abdallah.abouhajal@gmail.com](mailto:Abdallah.abouhajal@gmail.com).
 
