@@ -648,8 +648,6 @@ the "copyright" line and a pointer to where the full notice is found.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 📫 Reach out on Email 'Abdallah.abouhajal@aau.ac.ae'
-
-BAD Molecule Filter  Copyright (C) 2024  Al Ain University - Molecule Modeling Lab
  
 This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
 This is free software, and you are welcome to redistribute it
