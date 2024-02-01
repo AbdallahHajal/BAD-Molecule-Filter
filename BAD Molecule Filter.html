@@ -392,16 +392,6 @@ label {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Individual-Dataset Models (IMs)</td>
-                        <td>Provides detailed analysis based on specific datasets; tailored for advanced analysis.</td>
-                        <td>Later-stage research where dataset-specific knowledge is crucial for decision-making.</td>
-                    </tr>
-                    <tr>
-                        <td>Consensus Model (CM)</td>
-                        <td>Integrates multiple datasets for broad coverage; ideal for preliminary screening.</td>
-                        <td>Early-stage filtration to screen a diverse array of compounds.</td>
-                    </tr>
-                    <tr>
                         <td>Merged-Dataset Models (MMs)</td>
                         <td>Combines comprehensive datasets to handle complex compounds with high accuracy.</td>
                         <td>Complex scenarios involving intricate compounds where robust predictions are required.</td>
@@ -415,11 +405,6 @@ label {
                 <h3>Analyze SMILES String</h3>
                 <form id="smilesForm">
                     <input type="text" name="smiles" placeholder="Enter SMILES strings" required>
-                    <select name="model_type" required>
-                        <option value="IM" class="model-im">Individual Model</option>
-                        <option value="CM" class="model-cm">Consensus Model</option>
-                        <option value="MM" class="model-mm">Merged Model</option>
-                    </select>
                     <button type="submit" class="button">Analyze</button>
                 </form>
             </div>
@@ -427,13 +412,8 @@ label {
             <div class="form-container">
                 <h3>Upload File for Analysis</h3>
                 <form id="fileForm" action="/upload_file" method="post" enctype="multipart/form-data">
-                    <input type="file" name="file" required>
-                    <select name="model_type" required>
-                        <option value="IM">Individual Model</option>
-                        <option value="CM">Consensus Model</option>
-                        <option value="MM">Merged Model</option>
-                    </select>
-                    <button type="submit" class="button">Upload File</button>
+                    <input type="file" name="files" multiple accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                    <button type="submit" class="button">Upload File(s)</button>
                 </form>
             </div>
         
@@ -447,7 +427,7 @@ label {
         $(document).ready(function () {
             // Function to display loading message
             function showLoadingMessage() {
-                $('#results').html('<div id="loadingMessage">Analyzing data, please wait...</div>');
+                $('#results').html('<div id="loadingMessage">Analyzing data, Kindly wait...</div>');
             }
     
             // Function to hide loading message
@@ -456,26 +436,32 @@ label {
             }
     
             // Function to display results in a table format
+            // Function to display results in a table format
             function displayResultsAsTable(data) {
-                var table = '<table class="resultsTable">';
-                data.forEach(function (row, index) {
-                    table += '<tr>';
-                    if (index === 0) {
-                        // Add header row
-                        Object.keys(row).forEach(function (key) {
-                            table += '<th>' + key + '</th>';
+                if (data && data.length > 0) {
+                    var table = '<table class="resultsTable">';
+                    // Assuming data[0] contains column names
+                    table += '<thead><tr>';
+                    table += '<th>' + 'Prediction Probability' + '</th>';
+                    table += '<th>' + 'Prediction' + '</th>';
+                    table += '</tr></thead>';
+
+                    // Adding data rows
+                    table += '<tbody>';
+                    data.forEach(function (row) {
+                        table += '<tr>';
+                        Object.values(row).forEach(function (value) {
+                            table += '<td>' + value + '</td>';
                         });
-                        table += '</tr><tr>';
-                    }
-                    // Add data rows
-                    Object.values(row).forEach(function (value) {
-                        table += '<td>' + value + '</td>';
+                        table += '</tr>';
                     });
-                    table += '</tr>';
-                });
-                table += '</table>';
-                var successMessage = '<div class="message success">Analysis completed successfully.</div>';
-                $('#results').html(successMessage + table);
+                    table += '</tbody></table>';
+
+                    var successMessage = '<div class="message success">Analysis completed successfully.</div>';
+                    $('#results').html(successMessage + table);
+                } else {
+                    $('#results').html('<p>No data to display. Please check your file format.</p>');
+                }
             }
     
             // Handle SMILES form submission
@@ -483,12 +469,11 @@ label {
                 event.preventDefault();
                 showLoadingMessage();
                 var smiles = $('input[name="smiles"]').val();
-                var modelType = $('select[name="model_type"]').val();
                 $.ajax({
                     url: '/predict',
                     type: 'POST',
                     contentType: 'application/json;charset=UTF-8',
-                    data: JSON.stringify({ smiles: smiles, model_type: modelType }),
+                    data: JSON.stringify({ smiles: smiles}),
                     success: function (html) {
                         hideLoadingMessage();
                         $('#results').html(html);
@@ -522,7 +507,8 @@ label {
                     }
                 });
             });
-        });
+        })
+
     </script>    
     </body>
     </html>
