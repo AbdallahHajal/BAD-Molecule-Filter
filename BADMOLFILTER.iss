@@ -3,49 +3,64 @@
 
 [Setup]
 AppName=BAD Molecule Filter
-AppVersion=1.0
+AppVersion=1.1
 WizardStyle=modern
 DefaultDirName={autopf}\BAD-Molecule-Filter
 DefaultGroupName=BAD Molecule Filter
 UninstallDisplayIcon={app}\Uninstall.exe
 Compression=lzma2
 SolidCompression=yes
-OutputDir=userdocs:guide
+OutputDir=userdocs:BAD Molecule Filter
+PrivilegesRequired=admin
+AppCopyright=GNU General Public License v3.0
+LicenseFile=license.txt
 
 [Dirs]
 
 Name: "{app}\templates"
 Name: "{app}\guides"
-
+Name: "{app}\test"
+Name: "{app}\uploads"
+Name: "{app}\__pycache__"
 
 [Files]
-Source: "app.py"; DestDir: "{app}"
-Source: "setup.bat"; DestDir: "{app}"
-Source: "requirements.txt"; DestDir: "{app}"
-Source: "guides\Installation_Guide.ipynb"; DestDir: "{app}\guides";
-Source: "templates\BAD Molecule Filter.html"; DestDir: "{app}\templates"; 
-Source: "templates\index.html"; DestDir: "{app}\templates"; 
-Source: "MM_model.pkl"; DestDir: "{app}"; 
-Source: "model_For_Lactamase_Without_2_descriptors.pkl"; DestDir: "{app}";  
-Source: "model_trial_CRUUUZAAAIN.pkl"; DestDir: "{app}"; 
-Source: "model_trial_Laccccccc.pkl"; DestDir: "{app}"; 
-Source: "Newest_Model_Shoichet&ZINC.pkl"; DestDir: "{app}"; 
-Source: "scaler_Cruzain.pkl"; DestDir: "{app}"; 
-Source: "scaler_Lactamase.pkl"; DestDir: "{app}"; 
-Source: "scaler_MM.pkl"; DestDir: "{app}";           
-Source: "scaler_Shoichet.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Cruzain_Binary_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Cruzain_Continuous_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Lactamase_Binary_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Lactamase_Continuous_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_MM_Binary_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_MM_Continuous_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Shoichet_Binary_training_set.pkl"; DestDir: "{app}"; 
-Source: "x_train1_Shoichet_Continuous_training_set.pkl"; DestDir: "{app}"; 
+Source: "license.txt"; DestDir: "{app}"; Components:main/server
+Source: "app.py"; DestDir: "{app}"; Components:main/server
+Source: "python.bat"; DestDir: "{app}"; Components:other/python
+Source: "dep.bat"; DestDir: "{app}"; Components: other/python
+Source: "server.bat"; DestDir: "{app}"; Components:main/server
+Source: "requirements.txt"; DestDir: "{app}";Components: other/python
+Source: "guides\Installation_Guide.ipynb"; DestDir: "{app}\guides"; Components: main/guide
+Source: "templates\BAD Molecule Filter.html"; DestDir: "{app}\templates"; Components: main/server 
+Source: "test\test.xlsx"; DestDir: "{app}\test"; Components: other/data
+Source: "MM_model.pkl"; DestDir: "{app}";  Components: other/data
+Source: "scaler_MM.pkl"; DestDir: "{app}"; Components: other/data          
+Source: "x_train1_MM_Binary_training_set.pkl"; DestDir: "{app}"; Components: other/data
+Source: "x_train1_MM_Continuous_training_set.pkl"; DestDir: "{app}";  Components: other/data
+
+[Components]
+Name: "main"; Description: "Application"; Types: full;  Flags:fixed;
+Name: "main/server"; Description: "Server Script"; Types: full compact; Flags:fixed;
+Name: "main/guide"; Description: "Installation Guide"; Types: full compact ;
+
+Name: "other"; Description: "Requirements"; Types: full;   Flags:fixed;
+Name: "other/python"; Description: "Python and Dependencies"; Types: full compact;
+Name: "other/data"; Description:"Application Data";Types: full compact ; Flags: fixed
 
 [Run]
-Filename: "{app}\setup.bat"; Description:"Run Development Server"; Flags: postinstall shellexec skipifsilent
-Filename: "{app}\guides\Installation_Guide.ipynb";Description:"Read Installation Guide(Chrome/Opera/Edge)"; Flags: postinstall shellexec skipifsilent
+Filename: "{app}\server.bat"; Description:"Run Development Server"; Flags: runascurrentuser postinstall shellexec skipifsilent
+Filename: "https://nbviewer.org/github/AbdallahHajal/BAD-Molecule-Filter/blob/main/Installation_Guide.ipynb";Description:"Open Installation Guide(Chrome/Opera/Edge)"; Flags: shellexec runasoriginaluser
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+    ErrCode: integer;
+begin
+    if (CurStep=ssDone) then
+    begin
+        ShellExec('open', 'https://nbviewer.org/github/AbdallahHajal/BAD-Molecule-Filter/blob/main/Installation_Guide.ipynb', '', '', SW_SHOW, ewNoWait, ErrCode);
+    end;
+end;
 
 [Icons]
 Name: "{group}\Bad Molecule Filter"; Filename: "{app}\Bad-Molecule-Filter.exe"
