@@ -17,4 +17,4 @@ The model was also release for users can also use this filter directly on their 
 Should you have any questions or require assistance, feel free to reach out at [Abdallah.abouhajal@gmail.com](mailto:Abdallah.abouhajal@gmail.com).
 
 ## Acknowledgments
-For a deeper insight into the methodology and findings of this project, please consult our paper: [Link to the Paper or Full Citation](URL_of_the_paper)
+For a deeper insight into the methodology and findings of this project, please consult our paper: (https://pubs.acs.org/doi/10.1021/acs.jcim.4c00363)
