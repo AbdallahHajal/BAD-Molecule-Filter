@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAD Molecule Filter</title>
+<meta name="description" content="Predicts whether a small molecule forms colloidal aggregates in a biochemical assay. Open source, from the Journal of Chemical Information and Modeling, 2024.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='34' fill='none' stroke='%231f4e79' stroke-width='9'/><circle cx='50' cy='50' r='11' fill='%23c2410c'/></svg>">
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f6f7f9; --line:#dfe3e8;
+    --ink:#15202b; --soft:#5a6672; --faint:#8b95a1;
+    --accent:#1f4e79; --accent-ink:#ffffff; --warn-bg:#fdf6ec; --warn-line:#e8d4b0;
+    --radius:10px; --maxw:720px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11161c; --panel:#171e26; --line:#2a3542;
+      --ink:#e8edf2; --soft:#a3b0bd; --faint:#76838f;
+      --accent:#6ea8dc; --accent-ink:#0d1319; --warn-bg:#241d12; --warn-line:#4a3a20;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11161c; --panel:#171e26; --line:#2a3542;
+    --ink:#e8edf2; --soft:#a3b0bd; --faint:#76838f;
+    --accent:#6ea8dc; --accent-ink:#0d1319; --warn-bg:#241d12; --warn-line:#4a3a20;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:0 16px;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:56px 0 80px}
+  h1{font-size:30px; line-height:1.2; margin:0 0 6px; letter-spacing:-.01em}
+  .tagline{color:var(--soft); margin:0 0 32px; font-size:17px}
+  h2{font-size:15px; text-transform:uppercase; letter-spacing:.07em;
+     color:var(--faint); margin:40px 0 12px; font-weight:600}
+  p{margin:0 0 14px}
+  a{color:var(--accent)}
+  a:hover{text-decoration:none}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px}
+  pre{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+      padding:14px 16px; overflow-x:auto; margin:0 0 14px}
+  code{background:var(--panel); padding:1px 5px; border-radius:4px}
+  pre code{background:none; padding:0}
+  .run{
+    display:inline-block; background:var(--accent); color:var(--accent-ink);
+    padding:13px 26px; border-radius:var(--radius); text-decoration:none;
+    font-weight:600; font-size:16px;
+  }
+  .run:hover{opacity:.9}
+  .run-note{color:var(--faint); font-size:14px; margin:10px 0 0}
+  table{border-collapse:collapse; width:100%; margin:0 0 14px; font-size:15px}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:var(--faint); font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.05em}
+  td:first-child{white-space:nowrap; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .cite{background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--accent);
+        border-radius:var(--radius); padding:14px 16px; font-size:15px}
+  .notice{background:var(--warn-bg); border:1px solid var(--warn-line);
+          border-radius:var(--radius); padding:14px 16px; font-size:15px; margin:0 0 14px}
+  footer{margin-top:52px; padding-top:20px; border-top:1px solid var(--line);
+         color:var(--faint); font-size:14px}
+  footer a{color:var(--soft)}
+  @media (max-width:560px){ .wrap{padding:36px 0 60px} h1{font-size:25px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>BAD Molecule Filter</h1>
+  <p class="tagline">Predicts whether a small molecule forms colloidal aggregates in a biochemical assay.</p>
+
+  <a class="run" href="#install">Get the tool</a>
+  <p class="run-note">Open source, GPL-3.0. A hosted version is being set up; until then it runs locally in three commands.</p>
+
+  <h2>What it does</h2>
+  <p>Colloidal aggregation is the most common reason a compound looks active in a biochemical
+  screen without touching its target. This tool takes SMILES and returns a probability that
+  each compound aggregates, using an extremely randomised trees model over Morgan fingerprints
+  and Mordred descriptors, trained on detergent counter-screen data.</p>
+
+  <h2>Reading the output</h2>
+  <table>
+    <tr><th>Probability</th><th>Call</th></tr>
+    <tr><td>&gt; 0.6</td><td>Aggregator</td></tr>
+    <tr><td>0.3 to 0.6</td><td>Ambiguous. Treat as untested rather than clean.</td></tr>
+    <tr><td>&lt; 0.3</td><td>Non-aggregator</td></tr>
+  </table>
+  <p>A negative call means the model saw nothing resembling an aggregator, not that the
+  compound was tested and found inert. The training labels come from assay behaviour, so a
+  compound simply inactive against the screening enzyme is indistinguishable from one measured
+  and found not to form colloids.</p>
+
+  <h2>Cite</h2>
+  <div class="cite">
+    Abou Hajal A, Bryce RA, Amor B, Atatreh N. Boosting the Accuracy and Chemical Space
+    Coverage of the Detection of Small Colloidal Aggregating Molecules.
+    <em>J Chem Inf Model</em> 2024.
+    <a href="https://doi.org/10.1021/acs.jcim.4c00363">10.1021/acs.jcim.4c00363</a>
+  </div>
+
+  <h2 id="install">Run it locally</h2>
+  <p>If you need batch scoring, or want it to keep working whatever happens to this page:</p>
+<pre><code>git clone https://github.com/AbdallahHajal/BAD-Molecule-Filter
+cd BAD-Molecule-Filter
+pip install -r requirements.txt
+python app.py</code></pre>
+
+  <h2>If you arrived from the paper</h2>
+  <div class="notice">
+    The 2024 article gives the tool's address as <code>molmodlab-aau.com/Tools.html</code>.
+    That server is no longer running. This page is the tool's current home, and the
+    source is on GitHub under the link below.
+  </div>
+
+  <footer>
+    Source and issues:
+    <a href="https://github.com/AbdallahHajal/BAD-Molecule-Filter">github.com/AbdallahHajal/BAD-Molecule-Filter</a><br>
+    Abdallah Abou Hajal, Al Ain University, Abu Dhabi. Released under GPL-3.0.
+  </footer>
+
+</div>
+</body>
+</html>
