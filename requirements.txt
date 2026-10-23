@@ -1,7 +1,9 @@
-rdkit
-mordred
-numpy<2
-pandas
-scipy
-onnxruntime
-flask
+# Python 3.11. mordred 1.2.0 is the version the model was built with; it needs
+# networkx < 3 and numpy < 2, so those are pinned rather than left to resolve.
+flask==3.0.3
+numpy==1.26.4
+pandas==2.2.3
+networkx==2.8.8
+mordred==1.2.0
+rdkit==2024.9.6
+onnxruntime==1.19.2
