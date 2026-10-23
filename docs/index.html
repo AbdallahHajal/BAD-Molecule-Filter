@@ -271,10 +271,16 @@ python server.py</code></pre>
 (function(){
   "use strict";
 
-  /* Where the scoring service lives. Empty means same origin, which is what happens
-     when you run server.py locally. Set REMOTE_API once the service is deployed. */
-  var REMOTE_API = "";
-  var API = /\.github\.io$/.test(location.hostname) ? REMOTE_API : "";
+  /* Where the scoring runs.
+
+     On GitHub Pages there is no server, so scoring goes to the Hugging Face Space.
+     That Space speaks Gradio's two step protocol: post the input, then read the result
+     from an event stream. Run server.py locally instead and the page talks to it on its
+     own origin with plain JSON. Both give the same numbers; they are the same code. */
+  var REMOTE_API = "https://abdallahabouhajal-bad-molecule-filter.hf.space";
+  var ON_PAGES = /\.github\.io$/.test(location.hostname);
+  var API = ON_PAGES ? REMOTE_API : "";
+  var VIA_SPACE = ON_PAGES;
   var MAX_BATCH = 500;
 
   var $ = function(id){ return document.getElementById(id); };
@@ -393,18 +399,68 @@ python server.py</code></pre>
     $("svc-txt").textContent = text;
   }
   function checkService(){
-    if (!API && /\.github\.io$/.test(location.hostname)){
+    if (!API && ON_PAGES){
       setSvc("down", "Scoring service not connected");
       return Promise.resolve(false);
     }
     setSvc("busy", "Checking the service");
-    return fetch(API + "/health", {method:"GET"})
+    return fetch(API + (VIA_SPACE ? "/config" : "/health"))
       .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
       .then(function(j){
-        setSvc("ok", j && j.model_loaded === false ? "Service up, loading the model" : "Service ready");
+        setSvc("ok", (!VIA_SPACE && j && j.model_loaded === false)
+                     ? "Service up, loading the model" : "Service ready");
         return true;
       })
-      .catch(function(){ setSvc("down", "Scoring service unreachable"); return false; });
+      .catch(function(){ setSvc("down", "Scoring service asleep. It wakes on the first run.");
+                         return false; });
+  }
+
+  /* Pull the payload out of a Gradio event stream. The last data line wins, because the
+     stream can carry progress events before the completed one. */
+  function fromEventStream(text){
+    var lines = text.split(/\r?\n/), last = null;
+    for (var i = 0; i < lines.length; i++){
+      if (lines[i].slice(0, 6) !== "data: ") continue;
+      try {
+        var d = JSON.parse(lines[i].slice(6));
+        if (Array.isArray(d) && d.length && d[0] && typeof d[0] === "object") last = d[0];
+      } catch (e) {}
+    }
+    return last;
+  }
+
+  function score(smiles){
+    if (!VIA_SPACE){
+      return fetch(API + "/predict", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({smiles:smiles})
+      })
+      .then(function(r){
+        return r.json().then(function(j){
+          if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+          return j;
+        }, function(){ throw new Error("HTTP " + r.status); });
+      });
+    }
+    return fetch(API + "/gradio_api/call/predict", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({data:[smiles]})
+    })
+    .then(function(r){
+      if (!r.ok) throw new Error("The scoring service answered " + r.status + ".");
+      return r.json();
+    })
+    .then(function(j){
+      if (!j.event_id) throw new Error("The scoring service did not start the job.");
+      return fetch(API + "/gradio_api/call/predict/" + j.event_id);
+    })
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var payload = fromEventStream(text);
+      if (!payload) throw new Error("No result came back from the scoring service.");
+      if (payload.error) throw new Error(payload.error);
+      return payload;
+    });
   }
 
   /* ---------- predict ---------- */
@@ -419,7 +475,7 @@ python server.py</code></pre>
                     MAX_BATCH + " at a time. For more, run it on your own machine."});
       return;
     }
-    if (!API && /\.github\.io$/.test(location.hostname)){
+    if (!API && ON_PAGES){
       render({noservice:true, n:smiles.length});
       return;
     }
@@ -429,25 +485,16 @@ python server.py</code></pre>
                    (smiles.length === 1 ? " structure" : " structures"));
     render({loading:true, n:smiles.length});
 
-    fetch(API + "/predict", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({smiles:smiles})
-    })
-    .then(function(r){
-      if (!r.ok) return r.json().then(function(j){ throw new Error(j.error || ("HTTP " + r.status)); },
-                                      function(){ throw new Error("HTTP " + r.status); });
-      return r.json();
-    })
-    .then(function(j){
-      render({rows:j.results});
-      setSvc("ok", "Service ready");
-    })
-    .catch(function(e){
-      render({error:String(e.message || e)});
-      setSvc("down", "Scoring service unreachable");
-    })
-    .then(function(){ $("run-btn").disabled = false; });
+    score(smiles)
+      .then(function(j){
+        render({rows:j.results});
+        setSvc("ok", "Service ready");
+      })
+      .catch(function(e){
+        render({error:String(e.message || e)});
+        setSvc("down", "Scoring service unreachable");
+      })
+      .then(function(){ $("run-btn").disabled = false; });
   });
 
   /* ---------- results ---------- */
@@ -480,7 +527,8 @@ python server.py</code></pre>
     if (state.loading){
       box.innerHTML = '<div class="empty">Scoring ' + state.n +
         (state.n === 1 ? " structure. " : " structures. ") +
-        'The first request after an idle period also starts the server.</div>';
+        'The scoring service sleeps when nobody is using it, so the first run after a ' +
+        'quiet spell takes a minute or two to wake it.</div>';
       return;
     }
     if (state.error){
