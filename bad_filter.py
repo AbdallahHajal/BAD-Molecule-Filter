@@ -36,19 +36,25 @@ MODEL_PATH = os.environ.get("BAD_MODEL_PATH", os.path.join(HERE, "BAD_MM_model.o
 AGGREGATOR_ABOVE = 0.6
 NON_AGGREGATOR_BELOW = 0.3
 
-# Mordred's cost grows steeply with the size of the molecule, so a cap on the number of
-# structures does not cap the work a request can ask for. Measured on this machine:
+# Descriptor time is the expensive part, so a cap on the number of structures does not
+# cap the work a request can ask for. Measured on one machine with the 255 descriptor
+# calculator below:
 #
-#     50 drug-like molecules (18 heavy atoms each)    43 ms each
-#     nonacene            38 heavy atoms            0.30 s
-#     adamantane x10     100 heavy atoms            1.22 s
-#     C140 macrocycle    140 heavy atoms           15.93 s
-#     C150 chain         150 heavy atoms           15.09 s
+#     aspirin             13 atoms      0.06 s
+#     clotrimazole        25 atoms      0.11 s
+#     nonacene            38 atoms      0.09 s
+#     C50 chain           50 atoms      1.38 s
+#     adamantane x10     100 atoms      1.64 s
+#     20 biphenyls       120 atoms      1.62 s
+#     C150 chain         150 atoms      0.40 s
 #
-# That is about n**2.85. Five hundred C150 chains would occupy the server for two hours,
-# so the cost of a request is estimated from the atom counts before any descriptor is
-# computed, and the request is refused if it exceeds the budget. The estimate is
-# deliberately crude; it only has to be right about the order of magnitude.
+# Cost tracks atom count only loosely, so the estimate below is not a prediction. Its job
+# is to refuse obviously enormous requests before any work starts. The real bound is the
+# deadline in featurize_chunked, which is tight because the worst single molecule inside
+# MAX_ATOMS measured 1.7 s.
+#
+# (Before the calculator was restricted to the 255 descriptors actually used, the same
+# C150 chain took 15.1 s and 500 of them would have occupied the server for two hours.)
 MAX_SMILES_CHARS = 600
 MAX_ATOMS = 150
 COST_BUDGET_SECONDS = float(os.environ.get("BAD_COST_BUDGET", "60"))
@@ -66,8 +72,13 @@ def atom_count(mol):
 
 
 def estimate_seconds(n_atoms):
-    """Rough Mordred cost for one molecule, calibrated against the table above."""
-    return 15.0 * (n_atoms / 150.0) ** 2.85
+    """A deliberately generous upper bound on one molecule's descriptor time.
+
+    Generous on purpose: it is only used to refuse a request outright, and refusing a
+    legitimate batch is worse than letting the deadline stop a slow one. 500 drug-like
+    molecules estimate at about 39 seconds and actually take about 22.
+    """
+    return 0.05 + 2.0 * (n_atoms / 150.0) ** 2
 
 MORGAN_RADIUS = 2
 MORGAN_BITS = 2048
@@ -81,7 +92,19 @@ SCALER_MEAN = _sc["mean_"].astype(np.float64)
 SCALER_SCALE = _sc["scale_"].astype(np.float64)
 
 _morgan = rdFingerprintGenerator.GetMorganGenerator(radius=MORGAN_RADIUS, fpSize=MORGAN_BITS)
-_calc = Calculator(descriptors, ignore_3D=True)
+
+# The published app built the calculator from every Mordred descriptor, about 1,600 of
+# them, and then threw away all but these 255. Computing only the 255 gives the same
+# numbers for a fraction of the work, and it also means no descriptor outside this list,
+# including the expensive ones such as the detour matrix, can ever be reached by input.
+_wanted = set(CONTINUOUS_COLS)
+_selected = [d for d in Calculator(descriptors, ignore_3D=True).descriptors
+             if str(d) in _wanted]
+_missing = _wanted - {str(d) for d in _selected}
+if _missing:
+    raise RuntimeError("Mordred does not provide %d of the required descriptors: %s"
+                       % (len(_missing), sorted(_missing)[:5]))
+_calc = Calculator(_selected)
 
 _session = None
 _session_lock = threading.Lock()

@@ -1,0 +1,6 @@
+numpy==1.26.4
+pandas==2.2.3
+networkx==2.8.8
+mordred==1.2.0
+rdkit==2024.9.6
+onnxruntime==1.19.2
