@@ -6,6 +6,11 @@ Predicts whether a small molecule forms colloidal aggregates in a biochemical as
 
 Draw a structure, paste SMILES, or upload a CSV. You get a probability per compound.
 
+The page is on GitHub Pages and the scoring runs on a Hugging Face Space,
+[Abdallahabouhajal/BAD-Molecule-Filter](https://huggingface.co/spaces/Abdallahabouhajal/BAD-Molecule-Filter),
+which also has a plain page of its own. The Space sleeps when nobody is using it, so the
+first run after a quiet spell takes a minute or two to wake it.
+
 ## Reading the output
 
 | Probability | Call |
@@ -92,7 +97,16 @@ pinned scikit-learn. `convert_model_to_onnx.py` documents how it was made.
 | `columns_MM.json` | The 857 feature columns in training order |
 | `scaler_MM.npz` | The fitted scaler's mean and scale |
 | `convert_model_to_onnx.py` | Pickle to ONNX conversion |
+| `space/` | The Hugging Face Space app |
 | `app.py` | The 2024 Flask app, kept for reference |
+
+## Limits on the hosted service
+
+The hosted service is open to anyone, and descriptor calculation is the expensive part, so
+one request is capped at 500 structures, 600 characters per SMILES, 150 atoms per
+structure, a 1 MB body, and 60 seconds of descriptor time. Batches are scored one at a
+time. None of these apply when you run it yourself; `BAD_COST_BUDGET` and `BAD_MAX_BATCH`
+change them.
 
 ## The old address
 
