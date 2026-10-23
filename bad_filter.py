@@ -16,6 +16,7 @@ Feature order is the one the model was trained on, taken from columns_MM.json:
 import json
 import os
 import threading
+import time
 import urllib.request
 
 import numpy as np
@@ -49,13 +50,24 @@ NON_AGGREGATOR_BELOW = 0.3
 # computed, and the request is refused if it exceeds the budget. The estimate is
 # deliberately crude; it only has to be right about the order of magnitude.
 MAX_SMILES_CHARS = 600
-MAX_HEAVY_ATOMS = 150
+MAX_ATOMS = 150
 COST_BUDGET_SECONDS = float(os.environ.get("BAD_COST_BUDGET", "60"))
 
 
-def estimate_seconds(n_heavy_atoms):
+def atom_count(mol):
+    """The graph size Mordred actually works on.
+
+    Not GetNumHeavyAtoms: hydrogens written explicitly in the SMILES, including isotopic
+    ones such as [2H], are real nodes in the graph and cost real time, but do not count as
+    heavy atoms. Counting only heavy atoms would let a caller past the limits with a
+    molecule that is expensive to describe.
+    """
+    return mol.GetNumAtoms()
+
+
+def estimate_seconds(n_atoms):
     """Rough Mordred cost for one molecule, calibrated against the table above."""
-    return 15.0 * (n_heavy_atoms / 150.0) ** 2.85
+    return 15.0 * (n_atoms / 150.0) ** 2.85
 
 MORGAN_RADIUS = 2
 MORGAN_BITS = 2048
@@ -153,6 +165,40 @@ def featurize(mols):
     return np.hstack([cont_scaled, binary]).astype(np.float32), set(bad_rows.tolist())
 
 
+CHUNK_SECONDS = 5.0
+
+
+def featurize_chunked(mols, deadline=None):
+    """featurize in pieces, checking the clock between them.
+
+    The cost estimate decides whether a request is accepted, but an estimate can be wrong.
+    This is the backstop: work is cut into pieces of about CHUNK_SECONDS and the deadline
+    is checked after each, so a request that turns out to be far more expensive than it
+    looked stops instead of running for as long as it likes. The overshoot is bounded by
+    one molecule's cost, which the MAX_ATOMS cap holds to about 15 seconds.
+    """
+    parts, bad = [], set()
+    i = 0
+    while i < len(mols):
+        j, cost = i, 0.0
+        while j < len(mols):
+            c = estimate_seconds(atom_count(mols[j]))
+            if j > i and cost + c > CHUNK_SECONDS:
+                break
+            cost += c
+            j += 1
+        X, chunk_bad = featurize(mols[i:j])
+        parts.append(X)
+        bad |= {i + k for k in chunk_bad}
+        i = j
+        if deadline is not None and i < len(mols) and time.monotonic() > deadline:
+            raise TooMuchWork(
+                "That request is taking longer than its size suggested and was stopped "
+                "after %d seconds. Send fewer structures, or run it on your own machine."
+                % round(COST_BUDGET_SECONDS))
+    return np.vstack(parts), bad
+
+
 def predict(smiles_list, log=print):
     """Score a list of SMILES. Returns one dict per input, in the order given."""
     results = [{"smiles": s, "probability": None, "call": None, "error": None}
@@ -166,9 +212,9 @@ def predict(smiles_list, log=print):
         m = Chem.MolFromSmiles(s) if s else None
         if m is None:
             results[i]["error"] = "Not a readable SMILES"
-        elif m.GetNumHeavyAtoms() > MAX_HEAVY_ATOMS:
-            results[i]["error"] = ("Too large (%d heavy atoms, limit %d)"
-                                   % (m.GetNumHeavyAtoms(), MAX_HEAVY_ATOMS))
+        elif atom_count(m) > MAX_ATOMS:
+            results[i]["error"] = ("Too large (%d atoms, limit %d)"
+                                   % (atom_count(m), MAX_ATOMS))
         else:
             mols.append(m)
             rows.append(i)
@@ -176,7 +222,7 @@ def predict(smiles_list, log=print):
     if not mols:
         return results
 
-    cost = sum(estimate_seconds(m.GetNumHeavyAtoms()) for m in mols)
+    cost = sum(estimate_seconds(atom_count(m)) for m in mols)
     if cost > COST_BUDGET_SECONDS:
         raise TooMuchWork(
             "That request needs about %d seconds of descriptor calculation, and the limit "
@@ -184,7 +230,7 @@ def predict(smiles_list, log=print):
             % (round(cost), round(COST_BUDGET_SECONDS)))
 
     sess = get_session(log=log)
-    X, bad_rows = featurize(mols)
+    X, bad_rows = featurize_chunked(mols, deadline=time.monotonic() + COST_BUDGET_SECONDS)
 
     keep = [k for k in range(len(mols)) if k not in bad_rows]
     for k in bad_rows:
