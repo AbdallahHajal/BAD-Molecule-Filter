@@ -13,6 +13,7 @@ bad_filter.py. The predictions are the same.
 """
 import os
 import sys
+import threading
 import traceback
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -24,6 +25,14 @@ DOCS = os.path.join(HERE, "docs")
 MAX_BATCH = int(os.environ.get("BAD_MAX_BATCH", "500"))
 
 app = Flask(__name__, static_folder=None)
+
+# The endpoint is public and descriptor calculation is the expensive part, so the work a
+# single request can ask for is bounded three ways: the request body size, the number of
+# structures (MAX_BATCH), and the size of each structure (in bad_filter). Scoring is then
+# serialised, because two large batches at once would exhaust a small free instance.
+app.config["MAX_CONTENT_LENGTH"] = 1 << 20          # 1 MB
+_scoring_lock = threading.Lock()
+BUSY_WAIT_SECONDS = 60
 
 
 @app.after_request
@@ -77,11 +86,15 @@ def predict():
         return jsonify({"error": "That is %d structures. This service scores up to %d "
                                  "at a time." % (len(smiles), MAX_BATCH)}), 400
 
+    if not _scoring_lock.acquire(timeout=BUSY_WAIT_SECONDS):
+        return jsonify({"error": "The service is busy. Try again in a moment."}), 503
     try:
         results = bad_filter.predict(smiles, log=lambda m: print(m, flush=True))
     except Exception:
         traceback.print_exc()
         return jsonify({"error": "Scoring failed. See the server log."}), 500
+    finally:
+        _scoring_lock.release()
 
     return jsonify({"results": results, "n": len(results)})
 

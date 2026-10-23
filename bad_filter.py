@@ -35,6 +35,13 @@ MODEL_PATH = os.environ.get("BAD_MODEL_PATH", os.path.join(HERE, "BAD_MM_model.o
 AGGREGATOR_ABOVE = 0.6
 NON_AGGREGATOR_BELOW = 0.3
 
+# Mordred's cost grows with the size of the molecule, and some descriptors are far worse
+# than linear in the atom count. A cap on the number of structures alone therefore does not
+# cap the work a request can ask for, so size is capped per structure as well. These limits
+# are well above anything in the training set, which is small drug-like molecules.
+MAX_SMILES_CHARS = 600
+MAX_HEAVY_ATOMS = 150
+
 MORGAN_RADIUS = 2
 MORGAN_BITS = 2048
 
@@ -134,9 +141,15 @@ def predict(smiles_list, log=print):
 
     mols, rows = [], []
     for i, s in enumerate(smiles_list):
+        if s and len(s) > MAX_SMILES_CHARS:
+            results[i]["error"] = "Too long (limit %d characters)" % MAX_SMILES_CHARS
+            continue
         m = Chem.MolFromSmiles(s) if s else None
         if m is None:
             results[i]["error"] = "Not a readable SMILES"
+        elif m.GetNumHeavyAtoms() > MAX_HEAVY_ATOMS:
+            results[i]["error"] = ("Too large (%d heavy atoms, limit %d)"
+                                   % (m.GetNumHeavyAtoms(), MAX_HEAVY_ATOMS))
         else:
             mols.append(m)
             rows.append(i)
