@@ -35,12 +35,27 @@ MODEL_PATH = os.environ.get("BAD_MODEL_PATH", os.path.join(HERE, "BAD_MM_model.o
 AGGREGATOR_ABOVE = 0.6
 NON_AGGREGATOR_BELOW = 0.3
 
-# Mordred's cost grows with the size of the molecule, and some descriptors are far worse
-# than linear in the atom count. A cap on the number of structures alone therefore does not
-# cap the work a request can ask for, so size is capped per structure as well. These limits
-# are well above anything in the training set, which is small drug-like molecules.
+# Mordred's cost grows steeply with the size of the molecule, so a cap on the number of
+# structures does not cap the work a request can ask for. Measured on this machine:
+#
+#     50 drug-like molecules (18 heavy atoms each)    43 ms each
+#     nonacene            38 heavy atoms            0.30 s
+#     adamantane x10     100 heavy atoms            1.22 s
+#     C140 macrocycle    140 heavy atoms           15.93 s
+#     C150 chain         150 heavy atoms           15.09 s
+#
+# That is about n**2.85. Five hundred C150 chains would occupy the server for two hours,
+# so the cost of a request is estimated from the atom counts before any descriptor is
+# computed, and the request is refused if it exceeds the budget. The estimate is
+# deliberately crude; it only has to be right about the order of magnitude.
 MAX_SMILES_CHARS = 600
 MAX_HEAVY_ATOMS = 150
+COST_BUDGET_SECONDS = float(os.environ.get("BAD_COST_BUDGET", "60"))
+
+
+def estimate_seconds(n_heavy_atoms):
+    """Rough Mordred cost for one molecule, calibrated against the table above."""
+    return 15.0 * (n_heavy_atoms / 150.0) ** 2.85
 
 MORGAN_RADIUS = 2
 MORGAN_BITS = 2048
@@ -58,6 +73,10 @@ _calc = Calculator(descriptors, ignore_3D=True)
 
 _session = None
 _session_lock = threading.Lock()
+
+
+class TooMuchWork(Exception):
+    """The request would cost more descriptor time than the budget allows."""
 
 
 def call_for(p):
@@ -156,6 +175,13 @@ def predict(smiles_list, log=print):
 
     if not mols:
         return results
+
+    cost = sum(estimate_seconds(m.GetNumHeavyAtoms()) for m in mols)
+    if cost > COST_BUDGET_SECONDS:
+        raise TooMuchWork(
+            "That request needs about %d seconds of descriptor calculation, and the limit "
+            "is %d. Send fewer structures, or smaller ones, or run it on your own machine."
+            % (round(cost), round(COST_BUDGET_SECONDS)))
 
     sess = get_session(log=log)
     X, bad_rows = featurize(mols)

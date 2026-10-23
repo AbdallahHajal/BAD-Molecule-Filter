@@ -27,12 +27,15 @@ MAX_BATCH = int(os.environ.get("BAD_MAX_BATCH", "500"))
 app = Flask(__name__, static_folder=None)
 
 # The endpoint is public and descriptor calculation is the expensive part, so the work a
-# single request can ask for is bounded three ways: the request body size, the number of
-# structures (MAX_BATCH), and the size of each structure (in bad_filter). Scoring is then
-# serialised, because two large batches at once would exhaust a small free instance.
+# single request can ask for is bounded four ways: the request body size, the number of
+# structures (MAX_BATCH), the size of each structure, and an estimate of the total
+# descriptor time (both in bad_filter, with the measurements behind the estimate).
+# Scoring is then serialised, because two batches at once would exhaust a small free
+# instance. A caller that cannot get the lock quickly is told to come back rather than
+# left holding a connection open.
 app.config["MAX_CONTENT_LENGTH"] = 1 << 20          # 1 MB
-_scoring_lock = threading.Lock()
-BUSY_WAIT_SECONDS = 60
+_scoring_lock = threading.BoundedSemaphore(1)
+BUSY_WAIT_SECONDS = 5
 
 
 @app.after_request
@@ -87,9 +90,12 @@ def predict():
                                  "at a time." % (len(smiles), MAX_BATCH)}), 400
 
     if not _scoring_lock.acquire(timeout=BUSY_WAIT_SECONDS):
-        return jsonify({"error": "The service is busy. Try again in a moment."}), 503
+        return jsonify({"error": "The service is busy with another batch. "
+                                 "Try again in a moment."}), 503
     try:
         results = bad_filter.predict(smiles, log=lambda m: print(m, flush=True))
+    except bad_filter.TooMuchWork as e:
+        return jsonify({"error": str(e)}), 400
     except Exception:
         traceback.print_exc()
         return jsonify({"error": "Scoring failed. See the server log."}), 500
