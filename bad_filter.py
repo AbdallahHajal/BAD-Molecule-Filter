@@ -57,7 +57,15 @@ NON_AGGREGATOR_BELOW = 0.3
 # C150 chain took 15.1 s and 500 of them would have occupied the server for two hours.)
 MAX_SMILES_CHARS = 600
 MAX_ATOMS = 150
+
+# How long one request may spend on descriptors before it is stopped.
 COST_BUDGET_SECONDS = float(os.environ.get("BAD_COST_BUDGET", "60"))
+
+# A request whose upper bound exceeds this is refused straight away rather than worked on
+# for COST_BUDGET_SECONDS and then abandoned. It is deliberately far above the budget,
+# because max_seconds is a loose bound and a batch of 500 small molecules reaches 300
+# seconds on it while actually taking about 20.
+ADMISSION_CEILING_SECONDS = float(os.environ.get("BAD_ADMISSION_CEILING", "600"))
 
 
 def atom_count(mol):
@@ -71,14 +79,15 @@ def atom_count(mol):
     return mol.GetNumAtoms()
 
 
-def estimate_seconds(n_atoms):
-    """A deliberately generous upper bound on one molecule's descriptor time.
+def max_seconds(n_atoms):
+    """An upper bound on one molecule's descriptor time, not a prediction of it.
 
-    Generous on purpose: it is only used to refuse a request outright, and refusing a
-    legitimate batch is worse than letting the deadline stop a slow one. 500 drug-like
-    molecules estimate at about 39 seconds and actually take about 22.
+    It sits above every measurement in the table above, including the 1.38 s at 50 atoms
+    that a curve fitted to the endpoints would miss. Being an upper bound is what makes
+    the chunking in featurize_chunked a real guarantee: a chunk assembled to CHUNK_SECONDS
+    of this cannot take longer than CHUNK_SECONDS of real time.
     """
-    return 0.05 + 2.0 * (n_atoms / 150.0) ** 2
+    return 0.05 + 1.7 * min(1.0, n_atoms / 50.0)
 
 MORGAN_RADIUS = 2
 MORGAN_BITS = 2048
@@ -205,7 +214,7 @@ def featurize_chunked(mols, deadline=None):
     while i < len(mols):
         j, cost = i, 0.0
         while j < len(mols):
-            c = estimate_seconds(atom_count(mols[j]))
+            c = max_seconds(atom_count(mols[j]))
             if j > i and cost + c > CHUNK_SECONDS:
                 break
             cost += c
@@ -245,12 +254,10 @@ def predict(smiles_list, log=print):
     if not mols:
         return results
 
-    cost = sum(estimate_seconds(atom_count(m)) for m in mols)
-    if cost > COST_BUDGET_SECONDS:
+    if sum(max_seconds(atom_count(m)) for m in mols) > ADMISSION_CEILING_SECONDS:
         raise TooMuchWork(
-            "That request needs about %d seconds of descriptor calculation, and the limit "
-            "is %d. Send fewer structures, or smaller ones, or run it on your own machine."
-            % (round(cost), round(COST_BUDGET_SECONDS)))
+            "That is too much work for one request: %d structures of this size. Send "
+            "fewer, or smaller ones, or run it on your own machine." % len(mols))
 
     sess = get_session(log=log)
     X, bad_rows = featurize_chunked(mols, deadline=time.monotonic() + COST_BUDGET_SECONDS)
