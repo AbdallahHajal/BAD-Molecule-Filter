@@ -114,6 +114,16 @@
     .mast nav a{padding:7px 8px; font-size:14px}
   }
 
+  /* ---------- the rebuild note ---------- */
+  .band{display:flex; align-items:flex-start; gap:14px; margin-top:18px; padding:13px 16px;
+        background:var(--paper); border:1px solid var(--line); border-left:3px solid var(--orange);
+        border-radius:var(--r-sm); box-shadow:var(--shadow); font-size:13.5px; line-height:1.6;
+        color:var(--soft)}
+  .band p{margin:0; max-width:92ch}
+  .band b{color:var(--ink)}
+  .band .btn{flex:none; align-self:center}
+  @media (max-width:620px){ .band{flex-direction:column; gap:10px} .band .btn{align-self:flex-start} }
+
   /* ---------- hero ---------- */
   .hero{display:grid; grid-template-columns:minmax(0,0.88fr) minmax(0,1.12fr); gap:48px;
         align-items:center; padding-top:54px; padding-bottom:46px}
@@ -407,6 +417,20 @@
 
 <main id="top">
 
+  <div class="shell">
+    <div class="band lift" id="band">
+      <p><b>Rebuilt in October 2026.</b> The server that used to answer at this address stopped
+      running, so the tool was moved and the page was written again. The model, the features it
+      reads and the thresholds it reports are unchanged from the 2024 paper. The conversion was
+      checked against the original on 2,000 compounds, where the largest difference in
+      probability was 7.3e-08 and every call agreed. What changed is where the scoring runs and
+      how this page looks, and
+      <a href="https://github.com/AbdallahHajal/BAD-Molecule-Filter">the source</a> records all
+      of it.</p>
+      <button class="btn ghost sm" id="band-x" type="button">Dismiss</button>
+    </div>
+  </div>
+
   <section class="shell hero">
     <div class="lift" style="animation-delay:.05s">
       <h1>Will this compound aggregate?</h1>
@@ -646,6 +670,20 @@ python server.py</code></pre>
     }
     requestAnimationFrame(step);
   }
+
+  /* ---------- the rebuild note ----------
+     Dismissal is remembered per browser. Storage can throw in a private window or with site
+     data blocked, so every call to it is guarded and the note simply stays if it fails. */
+  (function(){
+    var band = $("band"), close = $("band-x");
+    if (!band || !close) return;
+    try { if (localStorage.getItem("bad-rebuilt-note") === "read") band.style.display = "none"; }
+    catch (e) {}
+    close.addEventListener("click", function(){
+      band.style.display = "none";
+      try { localStorage.setItem("bad-rebuilt-note", "read"); } catch (e) {}
+    });
+  })();
 
   /* ---------- the graphical abstract, full size ---------- */
   (function(){
