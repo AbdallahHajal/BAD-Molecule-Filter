@@ -12,8 +12,8 @@ server is no longer running.
 **The tool is now here: https://abdallahhajal.github.io/BAD-Molecule-Filter/**
 
 Draw a structure, paste SMILES, or upload a CSV. You get a probability per compound. The page
-also has a guessing game: two compounds, pick the one the filter scores higher. The game's
-numbers were produced offline by this same model, so it works while the scoring service wakes up.
+also has a sorting game: eight molecular properties, each one taken from the SHAP analysis in
+the paper, to be sorted by which way they push a prediction.
 
 The page is on GitHub Pages and the scoring runs on a Hugging Face Space,
 [Abdallahabouhajal/BAD-Molecule-Filter](https://huggingface.co/spaces/Abdallahabouhajal/BAD-Molecule-Filter),
@@ -105,7 +105,6 @@ pinned scikit-learn. `convert_model_to_onnx.py` documents how it was made.
 | `docs/Tools.html` | Keeps the address printed in the paper working |
 | `docs/jsme/` | JSME structure editor, BSD licence, vendored so the page has no external dependencies |
 | `docs/font/` | IBM Plex and Space Grotesk, SIL Open Font Licence, vendored for the same reason |
-| `docs/mol/` | Structure drawings for the guessing game, rendered with RDKit |
 | `docs/graphical-abstract.png` | The graphical abstract from the paper |
 | `columns_MM.json` | The 857 feature columns in training order |
 | `scaler_MM.npz` | The fitted scaler's mean and scale |
