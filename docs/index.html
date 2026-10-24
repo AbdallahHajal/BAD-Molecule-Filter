@@ -203,13 +203,22 @@
   textarea:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft)}
   .hint{color:var(--faint); font-size:13px; margin:9px 0 0}
 
-  .drop{border:1.5px dashed var(--line-2); border-radius:var(--r-sm); padding:34px 16px;
-        text-align:center; color:var(--soft); font-size:14px; cursor:pointer; background:var(--sunk);
+  .drop{display:block; border:1.5px dashed var(--line-2); border-radius:var(--r-sm);
+        padding:30px 16px; text-align:center; color:var(--soft); font-size:14px;
+        cursor:pointer; background:var(--sunk);
         transition:border-color var(--t) var(--ease), background-color var(--t) var(--ease),
                    color var(--t) var(--ease)}
   .drop:hover,.drop.over{border-color:var(--blue); color:var(--ink); background:var(--blue-soft)}
   .drop.over{border-style:solid}
   .drop input{display:none}
+  .drop b{display:block; color:var(--ink); font-size:15px; font-weight:600; margin-bottom:3px}
+  .drop em{font-style:normal; font-size:13px; color:var(--faint)}
+  .sample{margin:12px 0 0; padding:10px 12px; font-size:12px; line-height:1.7;
+          background:var(--sunk); border:1px solid var(--line); border-radius:var(--r-sm);
+          color:var(--soft); overflow-x:auto}
+  .cap{margin:12px 0 0; font-size:13px; color:var(--soft); background:var(--blue-soft);
+       border-radius:var(--r-sm); padding:10px 12px; line-height:1.55}
+  .cap b{color:var(--ink)}
 
   .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:15px}
   .status{display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--soft)}
@@ -436,7 +445,7 @@
         </div>
 
         <div class="pane" id="pane-smi" role="tabpanel" aria-labelledby="tab-smi">
-          <label for="smi-input" class="hint" style="margin:0 0 8px; display:block">One SMILES per line.</label>
+          <label for="smi-input" class="hint" style="margin:0 0 8px; display:block">One SMILES per line, up to 500.</label>
           <textarea id="smi-input" rows="12" spellcheck="false" autocapitalize="off" autocorrect="off"
             placeholder="CC(=O)Oc1ccccc1C(=O)O&#10;Cc1ccc(cc1)S(=O)(=O)N"></textarea>
           <p class="hint"><button class="btn ghost sm" id="to-editor" type="button">Open the first one in the editor</button></p>
@@ -445,10 +454,15 @@
         <div class="pane" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
           <label class="drop" id="drop">
             <input type="file" id="file-input" accept=".csv,.smi,.txt,.tsv">
-            <span id="drop-label">Choose a CSV or drop it here.<br>SMILES are read from the first column.</span>
+            <span id="drop-label"><b>Choose a file, or drop it here</b><em>.csv, .tsv, .smi or .txt</em></span>
           </label>
-          <p class="hint">A header row is skipped when the first cell reads SMILES, structure,
-          compound, name or id. Up to 500 structures at a time.</p>
+          <p class="hint">SMILES are read from the first column. Anything after it is ignored, and
+          a header row is skipped when the first cell reads SMILES, structure, compound, name or id.</p>
+<pre class="sample">SMILES,name
+CC(=O)Oc1ccccc1C(=O)O,aspirin
+c1ccccc1,benzene</pre>
+          <p class="cap"><b>500 structures per run.</b> Hand it a longer file and the page says so
+          rather than scoring part of it. Running it on your own machine has no limit.</p>
         </div>
 
         <div class="actions">
@@ -701,7 +715,7 @@ python server.py</code></pre>
     $("smi-input").value = "";
     $("file-input").value = "";
     fileRows = [];
-    $("drop-label").innerHTML = "Choose a CSV or drop it here.<br>SMILES are read from the first column.";
+    $("drop-label").innerHTML = "<b>Choose a file, or drop it here</b><em>.csv, .tsv, .smi or .txt</em>";
     $("draw-smi").textContent = "";
     render(null);
   });
@@ -724,8 +738,10 @@ python server.py</code></pre>
     var r = new FileReader();
     r.onload = function(){
       fileRows = parseTable(String(r.result));
-      $("drop-label").textContent = f.name + ": " + fileRows.length +
-        (fileRows.length === 1 ? " structure" : " structures");
+      var n = fileRows.length;
+      $("drop-label").innerHTML = "<b>" + esc(f.name) + "</b><em>" + n +
+        (n === 1 ? " structure" : " structures") +
+        (n > MAX_BATCH ? ", more than the " + MAX_BATCH + " this page scores" : "") + "</em>";
     };
     r.readAsText(f);
   }
