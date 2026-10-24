@@ -4,192 +4,439 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BAD Molecule Filter</title>
-<meta name="description" content="Draw a molecule or paste SMILES and get the probability that it forms colloidal aggregates in a biochemical assay. Open source, from the Journal of Chemical Information and Modeling, 2024.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='34' fill='none' stroke='%231f4e79' stroke-width='9'/><circle cx='50' cy='50' r='11' fill='%23c2410c'/></svg>">
+<meta name="description" content="Draw a molecule or paste SMILES and get the probability that it forms colloidal aggregates in a biochemical assay. The model published in J. Chem. Inf. Model. 2024, free and open source.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230F2232'/><circle cx='50' cy='50' r='26' fill='none' stroke='%23E2762B' stroke-width='9'/><circle cx='50' cy='50' r='8' fill='%23E2762B'/></svg>">
+
+<link rel="preload" as="font" type="font/woff2" href="font/IBMPlexSans-400.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="font/SpaceGrotesk-500.woff2" crossorigin>
+
 <script type="text/javascript" src="jsme/jsme.nocache.js"></script>
 <style>
+  /* Typefaces are kept in the repository rather than loaded from a font service, so the
+     page has no external dependency and keeps working offline. Both sans files are
+     variable, so one file covers every weight. Open Font Licence. */
+  @font-face{font-family:Plex; src:url(font/IBMPlexSans-400.woff2) format("woff2");
+             font-weight:100 700; font-style:normal; font-display:swap}
+  @font-face{font-family:Grotesk; src:url(font/SpaceGrotesk-500.woff2) format("woff2");
+             font-weight:300 700; font-style:normal; font-display:swap}
+  @font-face{font-family:PlexMono; src:url(font/IBMPlexMono-400.woff2) format("woff2");
+             font-weight:400; font-style:normal; font-display:swap}
+
   :root{
-    --bg:#ffffff; --panel:#f6f7f9; --panel-2:#eef1f4; --line:#dfe3e8;
-    --ink:#15202b; --soft:#5a6672; --faint:#8b95a1;
-    --accent:#1f4e79; --accent-ink:#ffffff;
-    --warn-bg:#fdf6ec; --warn-line:#e8d4b0;
-    --hit:#b3261e; --hit-bg:#fdeceb;
-    --mid:#8a6100; --mid-bg:#fdf6e3;
-    --clean:#1b5e20; --clean-bg:#eaf4eb;
-    --ok:#2e7d32; --down:#b3261e; --idle:#8b95a1;
-    --radius:10px; --maxw:1060px;
+    /* Ink and bench, and the orange the tool has carried since the 2024 paper. */
+    --ink:#0F2232; --soft:#4C6377; --faint:#7B8DA0;
+    --bench:#E9EEF3; --paper:#ffffff; --sunk:#F3F6F9;
+    --line:#D4DEE7; --line-2:#C0CEDB;
+    --blue:#14507E; --blue-ink:#ffffff; --blue-soft:#E7F0F8;
+    --orange:#E2762B;
+    --clean:#1B7A3E; --clean-bg:#E8F4EC;
+    --mid:#A96E00;   --mid-bg:#FBF1DE;
+    --hit:#BF2C22;   --hit-bg:#FBEBEA;
+    --ok:#1B7A3E; --down:#BF2C22; --idle:#9DAEBD;
+    --r:14px; --r-sm:9px;
+    --shadow:0 1px 2px rgba(15,34,50,.05), 0 8px 24px -18px rgba(15,34,50,.4);
+    --shadow-up:0 2px 4px rgba(15,34,50,.06), 0 22px 44px -24px rgba(15,34,50,.5);
+    --t:.26s; --ease:cubic-bezier(.2,.7,.3,1);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#11161c; --panel:#171e26; --panel-2:#1e2732; --line:#2a3542;
-      --ink:#e8edf2; --soft:#a3b0bd; --faint:#76838f;
-      --accent:#6ea8dc; --accent-ink:#0d1319;
-      --warn-bg:#241d12; --warn-line:#4a3a20;
-      --hit:#f2b8b5; --hit-bg:#33211f;
-      --mid:#e8c468; --mid-bg:#2e2616;
-      --clean:#a5d6a7; --clean-bg:#1a2a1c;
-      --ok:#81c784; --down:#f2b8b5; --idle:#76838f;
+      --ink:#E6EDF3; --soft:#9FB3C4; --faint:#75899B;
+      --bench:#0A131B; --paper:#101C26; --sunk:#16232F;
+      --line:#223240; --line-2:#2E4253;
+      --blue:#6FB0E2; --blue-ink:#07131C; --blue-soft:#15293A;
+      --orange:#F0904A;
+      --clean:#6FC68D; --clean-bg:#13261A;
+      --mid:#E2B463;   --mid-bg:#2A2214;
+      --hit:#F09089;   --hit-bg:#2E1917;
+      --ok:#6FC68D; --down:#F09089; --idle:#5D7488;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.9);
+      --shadow-up:0 2px 4px rgba(0,0,0,.5), 0 22px 44px -24px rgba(0,0,0,1);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#11161c; --panel:#171e26; --panel-2:#1e2732; --line:#2a3542;
-    --ink:#e8edf2; --soft:#a3b0bd; --faint:#76838f;
-    --accent:#6ea8dc; --accent-ink:#0d1319;
-    --warn-bg:#241d12; --warn-line:#4a3a20;
-    --hit:#f2b8b5; --hit-bg:#33211f;
-    --mid:#e8c468; --mid-bg:#2e2616;
-    --clean:#a5d6a7; --clean-bg:#1a2a1c;
-    --ok:#81c784; --down:#f2b8b5; --idle:#76838f;
+    --ink:#E6EDF3; --soft:#9FB3C4; --faint:#75899B;
+    --bench:#0A131B; --paper:#101C26; --sunk:#16232F;
+    --line:#223240; --line-2:#2E4253;
+    --blue:#6FB0E2; --blue-ink:#07131C; --blue-soft:#15293A;
+    --orange:#F0904A;
+    --clean:#6FC68D; --clean-bg:#13261A;
+    --mid:#E2B463;   --mid-bg:#2A2214;
+    --hit:#F09089;   --hit-bg:#2E1917;
+    --ok:#6FC68D; --down:#F09089; --idle:#5D7488;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.9);
+    --shadow-up:0 2px 4px rgba(0,0,0,.5), 0 22px 44px -24px rgba(0,0,0,1);
   }
+
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
   body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    padding:0 16px;
+    margin:0; background:var(--bench); color:var(--ink);
+    font:16px/1.6 Plex,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
-  .wrap{max-width:var(--maxw); margin:0 auto; padding:40px 0 72px}
-  .prose{max-width:720px}
-  h1{font-size:30px; line-height:1.2; margin:0 0 6px; letter-spacing:-.01em}
-  .tagline{color:var(--soft); margin:0 0 28px; font-size:17px; max-width:640px}
-  h2{font-size:15px; text-transform:uppercase; letter-spacing:.07em;
-     color:var(--faint); margin:44px 0 12px; font-weight:600}
-  h3{font-size:15px; margin:0 0 10px; font-weight:600}
+  .bar-wrap, .shell{max-width:1440px; margin:0 auto; padding:0 28px}
+  @media (max-width:620px){ .bar-wrap,.shell{padding:0 16px} }
+
+  h1,h2,h3,.mark,.num,.score{font-family:Grotesk,Plex,sans-serif; letter-spacing:-.015em}
+  h2{font-size:27px; line-height:1.15; margin:0 0 10px; font-weight:700}
+  h3{font-size:17px; line-height:1.3; margin:0 0 8px; font-weight:700}
   p{margin:0 0 14px}
-  a{color:var(--accent)}
-  a:hover{text-decoration:none}
-  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13.5px}
-  pre{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-      padding:14px 16px; overflow-x:auto; margin:0 0 14px}
-  code{background:var(--panel); padding:1px 5px; border-radius:4px}
+  a{color:var(--blue); text-decoration-thickness:1px; text-underline-offset:2px}
+  .mono{font-family:PlexMono,ui-monospace,SFMono-Regular,Menlo,monospace}
+  code{font-family:PlexMono,ui-monospace,Menlo,monospace; font-size:13px;
+       background:var(--sunk); padding:1.5px 5px; border-radius:5px}
+  pre{background:var(--sunk); border:1px solid var(--line); border-radius:var(--r-sm);
+      padding:13px 15px; overflow-x:auto; margin:0 0 12px; font-size:13px; line-height:1.75}
   pre code{background:none; padding:0}
 
-  /* tool */
-  .tool{display:grid; grid-template-columns:minmax(0,480px) minmax(0,1fr); gap:20px; align-items:start}
-  @media (max-width:900px){ .tool{grid-template-columns:1fr} }
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
-  .card-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
-             padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel-2)}
-  .card-body{padding:14px}
+  /* ---------- masthead ---------- */
+  .mast{position:sticky; top:0; z-index:30; background:var(--bench);
+        border-bottom:1px solid var(--line)}
+  @supports (backdrop-filter:blur(8px)){
+    .mast{background:color-mix(in srgb, var(--bench) 86%, transparent);
+          backdrop-filter:saturate(1.4) blur(10px)}
+  }
+  .mast .bar-wrap{display:flex; align-items:center; justify-content:space-between; gap:18px; height:60px}
+  .mark{display:inline-flex; align-items:center; gap:9px; font-weight:700; font-size:17px;
+        color:var(--ink); text-decoration:none}
+  .mark i{width:11px; height:11px; border-radius:50%; background:var(--orange); flex:none}
+  .mast nav{display:flex; gap:4px; align-items:center}
+  .mast nav a{color:var(--soft); text-decoration:none; font-size:14.5px; font-weight:500;
+              padding:7px 11px; border-radius:8px; transition:color var(--t) var(--ease),
+              background-color var(--t) var(--ease)}
+  .mast nav a:hover{color:var(--ink); background:var(--sunk)}
+  @media (max-width:880px){ .mast nav a.hide-s{display:none} .mark{font-size:15px} }
+
+  /* ---------- hero ---------- */
+  .hero{display:grid; grid-template-columns:minmax(0,0.88fr) minmax(0,1.12fr); gap:48px;
+        align-items:center; padding:54px 0 46px}
+  @media (max-width:1000px){ .hero{grid-template-columns:1fr; gap:30px; padding:34px 0 30px} }
+  h1{font-size:clamp(34px,4.1vw,51px); line-height:1.05; margin:0 0 16px; font-weight:700}
+  .lede{font-size:18px; color:var(--soft); margin:0 0 22px; max-width:46ch}
+  .facts{list-style:none; margin:0 0 26px; padding:0; display:flex; gap:30px; flex-wrap:wrap}
+  .facts b{display:block; font-family:Grotesk,sans-serif; font-size:26px; font-weight:700;
+           line-height:1.1; color:var(--ink)}
+  .facts span{font-size:13.5px; color:var(--faint)}
+  .hero figure{margin:0}
+  figcaption{color:var(--faint); font-size:13px; margin-top:9px}
+
+  .shot{display:block; width:100%; border:1px solid var(--line); border-radius:var(--r);
+        background:#fff; padding:14px; cursor:zoom-in; overflow:hidden; box-shadow:var(--shadow);
+        transition:box-shadow var(--t) var(--ease), border-color var(--t) var(--ease)}
+  .shot:hover{box-shadow:var(--shadow-up); border-color:var(--line-2)}
+  .shot img{display:block; width:100%; height:auto; transition:transform .6s var(--ease)}
+  .shot:hover img{transform:scale(1.025)}
+
+  /* ---------- shared surfaces ---------- */
+  .panel{background:var(--paper); border:1px solid var(--line); border-radius:var(--r);
+         box-shadow:var(--shadow); overflow:hidden;
+         transition:box-shadow var(--t) var(--ease), border-color var(--t) var(--ease)}
+  .panel:hover,.panel:focus-within{box-shadow:var(--shadow-up)}
+  .head{display:flex; align-items:center; justify-content:space-between; gap:12px;
+        padding:11px 15px; border-bottom:1px solid var(--line); background:var(--sunk)}
+  .head h3{margin:0; font-size:15px}
+  .body{padding:15px}
+  .sect-head{display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+             flex-wrap:wrap; margin:0 0 20px}
+  .sect-head p{color:var(--soft); margin:0; max-width:64ch}
+
+  /* ---------- buttons ---------- */
+  .btn{appearance:none; border:1px solid transparent; background:var(--blue); color:var(--blue-ink);
+       padding:11px 22px; border-radius:10px; font:inherit; font-weight:600; font-size:15px;
+       cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+       transition:transform .16s var(--ease), box-shadow var(--t) var(--ease),
+                  background-color var(--t) var(--ease), color var(--t) var(--ease),
+                  border-color var(--t) var(--ease), opacity var(--t) var(--ease)}
+  .btn:hover{transform:translateY(-1px); box-shadow:var(--shadow-up)}
+  .btn:active{transform:translateY(0) scale(.985); box-shadow:none}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none}
+  .btn.ghost{background:transparent; border-color:var(--line-2); color:var(--soft)}
+  .btn.ghost:hover{color:var(--ink); border-color:var(--soft)}
+  .btn.sm{padding:6px 13px; font-size:13.5px; border-radius:8px}
+  :focus-visible{outline:2px solid var(--orange); outline-offset:2px; border-radius:4px}
+
+  /* ---------- tool ---------- */
+  .tool{display:grid; grid-template-columns:minmax(0,430px) minmax(0,1fr) minmax(0,290px);
+        gap:20px; align-items:start; scroll-margin-top:72px}
+  @media (max-width:1180px){
+    .tool{grid-template-columns:minmax(0,400px) minmax(0,1fr)}
+    .tool .side{grid-column:1 / -1}
+    .side .body{display:grid; grid-template-columns:repeat(3,1fr)}
+    .key + .key{border-top:0; border-left:1px solid var(--line)}
+  }
+  @media (max-width:820px){
+    .tool{grid-template-columns:1fr}
+    .side .body{grid-template-columns:1fr}
+    .key + .key{border-left:0; border-top:1px solid var(--line)}
+    .out-body{min-height:190px}
+  }
 
   .tabs{display:flex; gap:2px}
   .tab{appearance:none; border:0; background:none; color:var(--soft); cursor:pointer;
-       font:inherit; font-size:14px; font-weight:600; padding:6px 11px; border-radius:7px}
-  .tab:hover{color:var(--ink)}
-  .tab[aria-selected="true"]{background:var(--accent); color:var(--accent-ink)}
+       font:inherit; font-size:14px; font-weight:600; padding:6px 12px; border-radius:8px;
+       transition:background-color var(--t) var(--ease), color var(--t) var(--ease),
+                  transform .16s var(--ease)}
+  .tab:hover{color:var(--ink); background:var(--paper)}
+  .tab:active{transform:scale(.95)}
+  .tab[aria-selected="true"]{background:var(--blue); color:var(--blue-ink)}
   .pane{display:none}
-  .pane.on{display:block}
+  .pane.on{display:block; animation:pane .3s var(--ease) both}
+  @keyframes pane{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
 
-  /* The editor toolbar has a fixed minimum width of about 450px. Below that it is
-     scrolled rather than clipped, so every tool stays reachable on a phone. */
-  #jsme_container{min-height:380px; border:1px solid var(--line); border-radius:8px;
+  /* The editor toolbar needs about 450px. Below that it scrolls rather than clips, so
+     every tool stays reachable on a phone. */
+  #jsme_container{min-height:360px; border:1px solid var(--line); border-radius:var(--r-sm);
                   background:#fff; overflow:auto; -webkit-overflow-scrolling:touch}
-  .sketch-fallback{padding:16px; color:var(--soft); font-size:14px}
+  .fallback{padding:16px; color:var(--soft); font-size:14px}
+  .drawn{margin:9px 0 0; font-size:13px; color:var(--faint); min-height:21px;
+         overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 
-  textarea,input[type="text"]{
-    width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--line);
-    border-radius:8px; padding:10px 12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-    font-size:13.5px; line-height:1.6; resize:vertical;
-  }
-  textarea:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:transparent}
-  .hint{color:var(--faint); font-size:13px; margin:8px 0 0}
+  textarea{width:100%; background:var(--paper); color:var(--ink); border:1px solid var(--line);
+    border-radius:var(--r-sm); padding:11px 13px; font-family:PlexMono,ui-monospace,Menlo,monospace;
+    font-size:13px; line-height:1.75; resize:vertical;
+    transition:border-color var(--t) var(--ease), box-shadow var(--t) var(--ease)}
+  textarea:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft)}
+  .hint{color:var(--faint); font-size:13px; margin:9px 0 0}
 
-  .filedrop{border:1.5px dashed var(--line); border-radius:8px; padding:26px 16px; text-align:center;
-            color:var(--soft); font-size:14px; cursor:pointer; background:var(--bg)}
-  .filedrop:hover,.filedrop.over{border-color:var(--accent); color:var(--ink)}
-  .filedrop input{display:none}
+  .drop{border:1.5px dashed var(--line-2); border-radius:var(--r-sm); padding:34px 16px;
+        text-align:center; color:var(--soft); font-size:14px; cursor:pointer; background:var(--sunk);
+        transition:border-color var(--t) var(--ease), background-color var(--t) var(--ease),
+                   color var(--t) var(--ease)}
+  .drop:hover,.drop.over{border-color:var(--blue); color:var(--ink); background:var(--blue-soft)}
+  .drop.over{border-style:solid}
+  .drop input{display:none}
 
-  .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px}
-  .btn{appearance:none; border:1px solid transparent; background:var(--accent); color:var(--accent-ink);
-       padding:10px 20px; border-radius:8px; font:inherit; font-weight:600; font-size:15px; cursor:pointer}
-  .btn:hover{opacity:.9}
-  .btn:disabled{opacity:.5; cursor:not-allowed}
-  .btn.ghost{background:none; border-color:var(--line); color:var(--soft)}
-  .btn.ghost:hover{color:var(--ink); border-color:var(--soft); opacity:1}
-  .btn.small{padding:6px 12px; font-size:13.5px}
-
-  .status{display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--soft)}
-  .dot{width:8px; height:8px; border-radius:50%; background:var(--idle); flex:none}
+  .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:15px}
+  .status{display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--soft)}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--idle); flex:none;
+       transition:background-color var(--t) var(--ease)}
   .dot.ok{background:var(--ok)} .dot.down{background:var(--down)}
-  .dot.busy{background:var(--mid); animation:pulse 1s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  @media (prefers-reduced-motion:reduce){ .dot.busy{animation:none} }
+  .dot.busy{background:var(--mid); animation:pulse 1.1s var(--ease) infinite}
+  @keyframes pulse{0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.35; transform:scale(.75)}}
 
-  .empty{color:var(--faint); font-size:14.5px; padding:28px 4px; text-align:center}
-  .msg{border-radius:8px; padding:12px 14px; font-size:14px; margin:0 0 12px}
-  .msg.bad{background:var(--hit-bg); color:var(--hit)}
-  .msg.info{background:var(--warn-bg); border:1px solid var(--warn-line); color:var(--ink)}
+  /* ---------- the readout ---------- */
+  .out-body{padding:22px 20px; min-height:318px; display:flex; flex-direction:column;
+            justify-content:center}
+  .out-body.flush{padding:0; display:block}
+  .blank{color:var(--faint); font-size:15px; text-align:center; padding:40px 10px}
+  .readout{text-align:center}
+  .num{font-size:clamp(52px,6.6vw,82px); font-weight:700; line-height:1;
+       font-variant-numeric:tabular-nums; margin:0 0 8px}
+  .verdict{display:inline-block; padding:5px 15px; border-radius:999px; font-size:14.5px;
+           font-weight:600; margin:0 0 26px}
+  .verdict.hit{background:var(--hit-bg); color:var(--hit)}
+  .verdict.mid{background:var(--mid-bg); color:var(--mid)}
+  .verdict.clean{background:var(--clean-bg); color:var(--clean)}
 
-  table{border-collapse:collapse; width:100%; font-size:14.5px}
-  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
-  th{color:var(--faint); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em}
-  .res-table td.smi{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px;
-                    max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .res-table td.p{font-variant-numeric:tabular-nums; white-space:nowrap; width:1%}
-  .call{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12.5px; font-weight:600; white-space:nowrap}
+  .gauge{position:relative; max-width:620px; margin:0 auto}
+  .track{height:11px; border-radius:7px; background:linear-gradient(90deg,
+         var(--clean) 0%, var(--clean) 25%, var(--mid) 33%, var(--mid) 57%,
+         var(--hit) 65%, var(--hit) 100%)}
+  .ticks{position:absolute; top:0; left:0; right:0; height:11px; pointer-events:none}
+  .ticks i{position:absolute; top:0; width:1.5px; height:11px; background:rgba(255,255,255,.8)}
+  .pin{position:absolute; top:-7px; left:0; width:7px; height:25px; border-radius:4px;
+       background:var(--ink); border:2.5px solid var(--paper); transform:translateX(-50%);
+       transition:left .85s var(--ease); box-shadow:0 2px 8px rgba(0,0,0,.35)}
+  /* The labels sit on the thresholds they name, not at even intervals. */
+  .axis{position:relative; height:16px; margin-top:9px; font-size:12px; color:var(--faint);
+        font-family:PlexMono,monospace}
+  .axis span{position:absolute; top:0; transform:translateX(-50%)}
+  .axis span:first-child{transform:none}
+  .axis span:last-child{transform:translateX(-100%)}
+  .smi-line{margin:22px auto 0; font-size:12.5px; color:var(--faint); max-width:100%;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+  .wait{height:3px; background:var(--sunk); border-radius:3px; overflow:hidden;
+        margin:18px auto 0; max-width:300px}
+  .wait i{display:block; height:100%; width:34%; border-radius:3px; background:var(--blue);
+          animation:slide 1.25s var(--ease) infinite}
+  @keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(330%)}}
+  .msg{border-radius:var(--r-sm); padding:13px 15px; font-size:14px; background:var(--hit-bg);
+       color:var(--hit); text-align:left}
+
+  /* ---------- batch table ---------- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse; width:100%; font-size:14px}
+  th,td{text-align:left; padding:9px 14px; border-bottom:1px solid var(--line); vertical-align:middle}
+  thead th{color:var(--faint); font-weight:600; font-size:12px}
+  tbody tr{animation:row .36s var(--ease) both}
+  @keyframes row{from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:none}}
+  td.smi{font-family:PlexMono,Menlo,monospace; font-size:12px; max-width:300px;
+         overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  td.p{font-variant-numeric:tabular-nums; white-space:nowrap; width:1%}
+  .call{display:inline-block; padding:2px 10px; border-radius:999px; font-size:12.5px;
+        font-weight:600; white-space:nowrap}
   .call.hit{background:var(--hit-bg); color:var(--hit)}
   .call.mid{background:var(--mid-bg); color:var(--mid)}
   .call.clean{background:var(--clean-bg); color:var(--clean)}
-  .bar{height:5px; border-radius:3px; background:var(--panel-2); overflow:hidden; min-width:72px; margin-top:4px}
-  .bar i{display:block; height:100%; border-radius:3px}
-  .scroll{overflow-x:auto}
-  .tcount{color:var(--faint); font-size:13px}
+  .mini{display:block; height:5px; border-radius:3px; background:var(--sunk); overflow:hidden;
+        min-width:76px; margin-top:4px}
+  .mini i{display:block; height:100%; width:0; border-radius:3px; transition:width .7s var(--ease)}
+  .foot-row{display:flex; justify-content:space-between; align-items:center; gap:12px;
+            padding:13px 15px; border-top:1px solid var(--line)}
+  .count{color:var(--faint); font-size:13px}
 
-  /* docs */
-  .thresh td:first-child{white-space:nowrap; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-  .cite{background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--accent);
-        border-radius:var(--radius); padding:14px 16px; font-size:15px}
-  .notice{background:var(--warn-bg); border:1px solid var(--warn-line);
-          border-radius:var(--radius); padding:14px 16px; font-size:15px; margin:0 0 14px}
-  footer{margin-top:52px; padding-top:20px; border-top:1px solid var(--line);
-         color:var(--faint); font-size:14px}
+  /* ---------- side ---------- */
+  .side .body{padding:0}
+  .key{display:flex; align-items:flex-start; gap:11px; padding:13px 15px}
+  .key + .key{border-top:1px solid var(--line)}
+  .swatch{width:9px; align-self:stretch; border-radius:4px; flex:none}
+  .key b{display:block; font-size:14px; margin-bottom:1px}
+  .key em{font-style:normal; font-size:13px; color:var(--soft); display:block}
+  .limits{font-size:12.5px; color:var(--faint); padding:13px 15px; border-top:1px solid var(--line);
+          line-height:1.6; margin:0}
+
+  /* ---------- guess the flag ---------- */
+  .game{padding:62px 0 0; scroll-margin-top:72px}
+  .board{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media (max-width:820px){ .board{grid-template-columns:1fr} }
+  .pick{position:relative; display:block; width:100%; text-align:left; cursor:pointer;
+        background:var(--paper); border:2px solid var(--line); border-radius:var(--r);
+        padding:0 0 2px; overflow:hidden; font:inherit; color:inherit; box-shadow:var(--shadow);
+        transition:border-color var(--t) var(--ease), box-shadow var(--t) var(--ease),
+                   transform var(--t) var(--ease)}
+  .pick:hover:not(.done){border-color:var(--blue); transform:translateY(-3px); box-shadow:var(--shadow-up)}
+  .pick:active:not(.done){transform:translateY(-1px)}
+  .pick.done{cursor:default}
+  .pick.win{border-color:var(--clean)}
+  .pick.lose{border-color:var(--hit)}
+  .pick .name{display:block; font-family:Grotesk,sans-serif; font-weight:700; font-size:18px;
+              padding:15px 18px 0}
+  .pick .draw{display:flex; align-items:center; justify-content:center; background:#fff;
+              margin:11px 15px 0; border-radius:var(--r-sm); border:1px solid var(--line);
+              min-height:232px; overflow:hidden}
+  .pick .draw svg{width:100%; height:auto; max-height:250px; display:block}
+  .fold{display:grid; grid-template-rows:0fr; transition:grid-template-rows .55s var(--ease)}
+  .pick.done .fold{grid-template-rows:1fr}
+  .fold > span{overflow:hidden}
+  .fold-pad{display:flex; align-items:center; gap:14px; padding:15px 18px 14px}
+  .fold-pad .p{font-family:Grotesk,sans-serif; font-size:29px; font-weight:700;
+               font-variant-numeric:tabular-nums; line-height:1}
+  .fold-pad .mini{flex:1; min-width:50px; height:7px; margin:0}
+  .tag{position:absolute; top:15px; right:17px; font-size:12.5px; font-weight:600;
+       padding:3px 11px; border-radius:999px; opacity:0; transform:translateY(-7px);
+       transition:opacity var(--t) var(--ease), transform var(--t) var(--ease)}
+  .pick.done .tag{opacity:1; transform:none}
+  .tag.yes{background:var(--clean-bg); color:var(--clean)}
+  .tag.no{background:var(--hit-bg); color:var(--hit)}
+  .scoreline{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .score{font-family:Grotesk,sans-serif; font-size:20px; font-weight:700; white-space:nowrap}
+  .score em{font-style:normal; color:var(--faint); font-weight:500; font-size:15px}
+  .note{color:var(--soft); font-size:14.5px; margin:16px 0 0; min-height:22px}
+
+  /* ---------- method ---------- */
+  .method{padding:62px 0 0; scroll-margin-top:72px}
+  .cols{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; align-items:start}
+  @media (max-width:980px){ .cols{grid-template-columns:1fr} }
+  .cols .body{padding:20px}
+  .cols p:last-child{margin-bottom:0}
+  .cite{border-left:3px solid var(--orange)}
+
+  footer{margin-top:66px; border-top:1px solid var(--line); padding:26px 0 40px;
+         color:var(--faint); font-size:13.5px; background:var(--paper)}
   footer a{color:var(--soft)}
-  @media (max-width:560px){
-    .wrap{padding:28px 0 56px} h1{font-size:25px} .card-body{padding:12px}
-    th,td{padding:8px 8px}
-    .res-table td.smi{max-width:130px; font-size:11.5px}
-    .bar{min-width:48px}
+  footer .bar-wrap{display:flex; gap:30px; justify-content:space-between; flex-wrap:wrap}
+
+  /* ---------- lightbox ---------- */
+  .lb{position:fixed; inset:0; background:rgba(8,14,20,.9); z-index:60; display:flex;
+      align-items:center; justify-content:center; padding:26px; opacity:0; visibility:hidden;
+      transition:opacity var(--t) var(--ease), visibility var(--t)}
+  .lb.on{opacity:1; visibility:visible}
+  .lb img{max-width:100%; max-height:88vh; background:#fff; padding:14px; border-radius:10px;
+          transform:scale(.96); transition:transform .4s var(--ease)}
+  .lb.on img{transform:scale(1)}
+  .lb button{position:absolute; top:18px; right:20px; appearance:none; border:0; cursor:pointer;
+             background:rgba(255,255,255,.14); color:#fff; font:inherit; font-size:15px;
+             border-radius:9px; padding:8px 14px; transition:background-color var(--t) var(--ease)}
+  .lb button:hover{background:rgba(255,255,255,.3)}
+
+  /* ---------- the one entrance ---------- */
+  .lift{opacity:0; transform:translateY(16px); animation:lift .7s var(--ease) forwards}
+  @keyframes lift{to{opacity:1; transform:none}}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important;
+                         transition-duration:.001ms !important}
+    .lift{opacity:1; transform:none}
+    .btn:hover,.pick:hover:not(.done){transform:none}
+    .shot:hover img{transform:none}
   }
 </style>
+<noscript><style>.lift{opacity:1; transform:none; animation:none}</style></noscript>
 </head>
 <body>
-<div class="wrap">
 
-  <h1>BAD Molecule Filter</h1>
-  <p class="tagline">Draw a molecule or paste SMILES. The model returns the probability that each
-  compound forms colloidal aggregates in a biochemical assay.</p>
+<header class="mast">
+  <div class="bar-wrap">
+    <a class="mark" href="#top"><i></i>BAD Molecule Filter</a>
+    <nav>
+      <a href="#tool">Tool</a>
+      <a href="#game">Guess the flag</a>
+      <a href="#method" class="hide-s">Method</a>
+      <a href="https://doi.org/10.1021/acs.jcim.4c00363" class="hide-s">Paper</a>
+      <a href="https://github.com/AbdallahHajal/BAD-Molecule-Filter">Source</a>
+    </nav>
+  </div>
+</header>
 
-  <div class="tool">
+<main id="top">
 
-    <div class="card">
-      <div class="card-head">
-        <div class="tabs" role="tablist" aria-label="How to enter compounds">
-          <button class="tab" role="tab" id="tab-draw"  aria-selected="true"  aria-controls="pane-draw">Draw</button>
-          <button class="tab" role="tab" id="tab-smi"   aria-selected="false" aria-controls="pane-smi">SMILES</button>
-          <button class="tab" role="tab" id="tab-file"  aria-selected="false" aria-controls="pane-file">File</button>
-        </div>
-        <button class="btn ghost small" id="clear-btn" type="button">Clear</button>
+  <section class="shell hero">
+    <div class="lift" style="animation-delay:.05s">
+      <h1>Will this compound aggregate?</h1>
+      <p class="lede">Colloidal aggregation is the most common reason a molecule looks active in a
+      biochemical screen without ever touching its target. Draw a structure and the model returns
+      the probability that it forms colloids in the assay.</p>
+      <ul class="facts">
+        <li><b>56,754</b><span>training compounds</span></li>
+        <li><b>857</b><span>features per molecule</span></li>
+        <li><b>79%</b><span>sensitivity, 10-fold CV</span></li>
+      </ul>
+      <a class="btn" href="#tool">Score a structure</a>
+    </div>
+    <figure class="lift" style="animation-delay:.18s">
+      <div class="shot" id="ga" role="button" tabindex="0" aria-label="Show the graphical abstract full size">
+        <img src="graphical-abstract.png" width="1746" height="532" decoding="async"
+             alt="Three panels. Database preparation separates aggregators from non-aggregators.
+                  Machine learning modelling shows frameworks A, B and C. The third panel is the
+                  online predictor.">
       </div>
-      <div class="card-body">
+      <figcaption>Graphical abstract from the paper. Click to enlarge.</figcaption>
+    </figure>
+  </section>
+
+  <section class="shell tool lift" id="tool" style="animation-delay:.3s">
+
+    <div class="panel">
+      <div class="head">
+        <div class="tabs" role="tablist" aria-label="How to enter compounds">
+          <button class="tab" role="tab" id="tab-draw" aria-selected="true"  aria-controls="pane-draw">Draw</button>
+          <button class="tab" role="tab" id="tab-smi"  aria-selected="false" aria-controls="pane-smi">SMILES</button>
+          <button class="tab" role="tab" id="tab-file" aria-selected="false" aria-controls="pane-file">File</button>
+        </div>
+        <button class="btn ghost sm" id="clear-btn" type="button">Clear</button>
+      </div>
+      <div class="body">
 
         <div class="pane on" id="pane-draw" role="tabpanel" aria-labelledby="tab-draw">
-          <div id="jsme_container"><div class="sketch-fallback">Loading the structure editor.</div></div>
-          <p class="hint" id="draw-smi">Draw a structure and its SMILES appears here.</p>
+          <div id="jsme_container"><div class="fallback">Loading the structure editor.</div></div>
+          <p class="drawn mono" id="draw-smi"></p>
         </div>
 
         <div class="pane" id="pane-smi" role="tabpanel" aria-labelledby="tab-smi">
           <label for="smi-input" class="hint" style="margin:0 0 8px; display:block">One SMILES per line.</label>
-          <textarea id="smi-input" rows="13" spellcheck="false" autocapitalize="off" autocorrect="off"
+          <textarea id="smi-input" rows="12" spellcheck="false" autocapitalize="off" autocorrect="off"
             placeholder="CC(=O)Oc1ccccc1C(=O)O&#10;Cc1ccc(cc1)S(=O)(=O)N"></textarea>
-          <p class="hint"><button class="btn ghost small" id="to-editor" type="button">Open the first one in the editor</button></p>
+          <p class="hint"><button class="btn ghost sm" id="to-editor" type="button">Open the first one in the editor</button></p>
         </div>
 
         <div class="pane" id="pane-file" role="tabpanel" aria-labelledby="tab-file">
-          <label class="filedrop" id="drop">
+          <label class="drop" id="drop">
             <input type="file" id="file-input" accept=".csv,.smi,.txt,.tsv">
             <span id="drop-label">Choose a CSV or drop it here.<br>SMILES are read from the first column.</span>
           </label>
-          <p class="hint">A header row is skipped when the first cell reads SMILES, structure, compound, name or id.</p>
+          <p class="hint">A header row is skipped when the first cell reads SMILES, structure,
+          compound, name or id. Up to 500 structures at a time.</p>
         </div>
 
         <div class="actions">
@@ -199,72 +446,113 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-head">
-        <h3 style="margin:0">Results</h3>
-        <span class="tcount" id="res-count"></span>
+    <div class="panel">
+      <div class="head">
+        <h3>Result</h3>
+        <span class="count" id="res-count"></span>
       </div>
-      <div class="card-body" id="results">
-        <div class="empty">Nothing scored yet.</div>
+      <div class="out-body" id="results">
+        <div class="blank">Draw or paste a structure, then press Predict.</div>
       </div>
     </div>
 
-  </div>
+    <aside class="panel side">
+      <div class="head"><h3>Reading the number</h3></div>
+      <div class="body">
+        <div class="key"><span class="swatch" style="background:var(--hit)"></span>
+          <span><b>Above 0.6</b><em>Aggregator. Counter-screen with detergent before trusting the hit.</em></span></div>
+        <div class="key"><span class="swatch" style="background:var(--mid)"></span>
+          <span><b>0.3 to 0.6</b><em>Ambiguous. Treat as untested rather than clean.</em></span></div>
+        <div class="key"><span class="swatch" style="background:var(--clean)"></span>
+          <span><b>Below 0.3</b><em>Non-aggregator. Nothing in the structure resembles one.</em></span></div>
+      </div>
+      <p class="limits">A negative call is not a measurement. The training labels come from assay
+      behaviour, so a compound simply inactive against the screening enzyme looks the same as one
+      measured and found not to form colloids.</p>
+    </aside>
 
-  <div class="prose">
+  </section>
 
-  <h2>Reading the output</h2>
-  <table class="thresh">
-    <tr><th>Probability</th><th>Call</th></tr>
-    <tr><td>&gt; 0.6</td><td>Aggregator</td></tr>
-    <tr><td>0.3 to 0.6</td><td>Ambiguous. Treat as untested rather than clean.</td></tr>
-    <tr><td>&lt; 0.3</td><td>Non-aggregator</td></tr>
-  </table>
-  <p>A negative call means only that the model saw nothing resembling an aggregator. It does
-  not mean the compound was tested and found inert. The training labels come from assay
-  behaviour, so a compound simply inactive against the screening enzyme is indistinguishable
-  from one measured and found not to form colloids.</p>
+  <section class="shell game" id="game">
+    <div class="sect-head">
+      <div>
+        <h2>Guess the flag</h2>
+        <p>Two compounds. Pick the one you think the filter scores higher. The numbers shown are
+        what this model outputs for these structures. No compound here was measured at the bench.</p>
+      </div>
+      <div class="scoreline">
+        <span class="score" id="score">0 <em>of 0</em></span>
+        <button class="btn ghost sm" id="next-btn" type="button" disabled>Next pair</button>
+      </div>
+    </div>
+    <div class="board" id="board"></div>
+    <p class="note" id="game-note"></p>
+  </section>
 
-  <h2>What it does</h2>
-  <p>Colloidal aggregation is the most common reason a compound looks active in a biochemical
-  screen without touching its target. Each structure is turned into 602 Morgan fingerprint bits
-  and 255 Mordred descriptors, and scored by an extremely randomised trees model of 1000 trees
-  trained on detergent counter-screen data.</p>
+  <section class="shell method" id="method">
+    <div class="sect-head">
+      <div>
+        <h2>How it works</h2>
+        <p>The model published with the 2024 paper, running unchanged.</p>
+      </div>
+    </div>
+    <div class="cols">
 
-  <h2>Cite</h2>
-  <div class="cite">
-    Abou Hajal A, Bryce RA, Amor B, Atatreh N. Boosting the Accuracy and Chemical Space
-    Coverage of the Detection of Small Colloidal Aggregating Molecules.
-    <em>J Chem Inf Model</em> 2024.
-    <a href="https://doi.org/10.1021/acs.jcim.4c00363">10.1021/acs.jcim.4c00363</a>
-  </div>
+      <div class="panel"><div class="body">
+        <h3>The model</h3>
+        <p>Each structure becomes 602 Morgan fingerprint bits, radius 2, and 255 Mordred
+        descriptors standardised on the training set. An extremely randomised trees model of
+        1000 trees returns the probability.</p>
+        <p>This is the merged model, the one the web tool has always used. It was converted from
+        the original pickle to ONNX so it no longer depends on one version of scikit-learn, then
+        checked against the original on 2,000 compounds. The largest difference in probability
+        was 7.3e-08 and every call agreed.</p>
+      </div></div>
 
-  <h2 id="install">Run it on your own machine</h2>
-  <p>For large batches, or to keep it working whatever happens to this page:</p>
+      <div class="panel"><div class="body">
+        <h3>Run it yourself</h3>
+        <p>For batches above 500, or to keep it working whatever happens to this page:</p>
 <pre><code>git clone https://github.com/AbdallahHajal/BAD-Molecule-Filter
 cd BAD-Molecule-Filter
 pip install -r requirements.txt
 python server.py</code></pre>
-  <p>That opens the same page at <code>http://localhost:7860</code> and scores compounds locally.
-  The model file is downloaded once on first run and cached.</p>
+        <p>That serves this same page at <code>localhost:7860</code> and scores locally. The model
+        file is fetched once on first run and cached. Python 3.11.</p>
+      </div></div>
 
-  <h2>If you arrived from the paper</h2>
-  <div class="notice">
-    The 2024 article gives the tool's address as <code>molmodlab-aau.com/Tools.html</code>.
-    That server is no longer running. This page is the tool's current home, and the
-    source is on GitHub under the link below.
+      <div class="panel cite"><div class="body">
+        <h3>Cite</h3>
+        <p>Abou Hajal A, Bryce RA, Amor B, Atatreh N. Boosting the Accuracy and Chemical Space
+        Coverage of the Detection of Small Colloidal Aggregating Molecules Using the BAD Molecule
+        Filter. <em>J Chem Inf Model</em> 2024.<br>
+        <a href="https://doi.org/10.1021/acs.jcim.4c00363">10.1021/acs.jcim.4c00363</a></p>
+        <p>Scoring runs on a
+        <a href="https://huggingface.co/spaces/Abdallahabouhajal/BAD-Molecule-Filter">Hugging Face
+        Space</a>, which sleeps when nobody is using it. The first run after a quiet spell takes a
+        minute or two to wake it.</p>
+      </div></div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="bar-wrap">
+    <div>Abdallah Abou Hajal, Al Ain University, Abu Dhabi. Released under GPL-3.0.<br>
+      Source and issues:
+      <a href="https://github.com/AbdallahHajal/BAD-Molecule-Filter">github.com/AbdallahHajal/BAD-Molecule-Filter</a>
+    </div>
+    <div>Structure editor: <a href="https://jsme-editor.github.io/">JSME</a>, BSD licence, Novartis
+      Institutes for BioMedical Research and Bruno Bienfait.<br>
+      Structures drawn with <a href="https://www.rdkit.org/">RDKit</a>. Type: IBM Plex and Space Grotesk.
+    </div>
   </div>
+</footer>
 
-  </div>
-
-  <footer>
-    Source and issues:
-    <a href="https://github.com/AbdallahHajal/BAD-Molecule-Filter">github.com/AbdallahHajal/BAD-Molecule-Filter</a><br>
-    Abdallah Abou Hajal, Al Ain University, Abu Dhabi. Released under GPL-3.0.
-    Structure editor: <a href="https://jsme-editor.github.io/">JSME</a>, BSD licence,
-    Novartis Institutes for BioMedical Research and Bruno Bienfait.
-  </footer>
-
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Graphical abstract">
+  <button type="button" id="lb-close">Close</button>
+  <img id="lb-img" src="" alt="">
 </div>
 
 <script>
@@ -273,18 +561,68 @@ python server.py</code></pre>
 
   /* Where the scoring runs.
 
-     On GitHub Pages there is no server, so scoring goes to the Hugging Face Space.
-     That Space speaks Gradio's two step protocol: post the input, then read the result
-     from an event stream. Run server.py locally instead and the page talks to it on its
-     own origin with plain JSON. Both give the same numbers; they are the same code. */
+     Published, there is no server behind this page, so scoring goes to the Hugging Face
+     Space. That Space speaks Gradio's two step protocol: post the input, then read the
+     result from an event stream. Run server.py locally instead and the page talks to it
+     on its own origin with plain JSON. Both give the same numbers; they are the same code.
+
+     The test is for a local host rather than for github.io, so the page keeps working
+     when it is served from another address. */
   var REMOTE_API = "https://abdallahabouhajal-bad-molecule-filter.hf.space";
-  var ON_PAGES = /\.github\.io$/.test(location.hostname);
-  var API = ON_PAGES ? REMOTE_API : "";
-  var VIA_SPACE = ON_PAGES;
+  var LOCAL = /^(localhost|127\.0\.0\.1|\[?::1\]?|0\.0\.0\.0)$/.test(location.hostname) ||
+              location.protocol === "file:";
+  var VIA_SPACE = !LOCAL;
+  var API = VIA_SPACE ? REMOTE_API : "";
   var MAX_BATCH = 500;
 
   var $ = function(id){ return document.getElementById(id); };
   var jsme = null, activeTab = "draw";
+  var slow = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function callOf(p){
+    if (p > 0.6) return ["Aggregator", "hit", "var(--hit)"];
+    if (p < 0.3) return ["Non-aggregator", "clean", "var(--clean)"];
+    return ["Ambiguous", "mid", "var(--mid)"];
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+    });
+  }
+  /* Two frames, so the browser has painted the start value before the transition runs. */
+  function nextPaint(fn){
+    if (slow) { fn(); return; }
+    requestAnimationFrame(function(){ requestAnimationFrame(fn); });
+  }
+  function countTo(el, target, ms){
+    if (slow){ el.textContent = target.toFixed(3); return; }
+    var start = null;
+    function step(now){
+      if (start === null) start = now;
+      var k = Math.min(1, (now - start) / ms);
+      el.textContent = (target * (1 - Math.pow(1 - k, 3))).toFixed(3);
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- the graphical abstract, full size ---------- */
+  (function(){
+    var shot = $("ga"), lb = $("lb"), img = $("lb-img"), close = $("lb-close");
+    if (!shot || !lb) return;
+    var src = shot.querySelector("img");
+    function open(){ img.src = src.src; img.alt = src.alt; lb.classList.add("on"); close.focus(); }
+    function shut(){ lb.classList.remove("on"); shot.focus(); }
+    shot.addEventListener("click", open);
+    shot.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+    });
+    close.addEventListener("click", shut);
+    lb.addEventListener("click", function(e){ if (e.target !== img) shut(); });
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape" && lb.classList.contains("on")) shut();
+    });
+  })();
 
   /* ---------- tabs ---------- */
   var tabs = [["tab-draw","pane-draw","draw"],["tab-smi","pane-smi","smi"],["tab-file","pane-file","file"]];
@@ -305,29 +643,26 @@ python server.py</code></pre>
     var box = $("jsme_container");
     box.innerHTML = "";
     try {
-      jsme = new JSApplet.JSME("jsme_container", "100%", "380px", {
+      jsme = new JSApplet.JSME("jsme_container", "100%", "360px", {
         options: "newlook,useopenchemlib,noexportSVG",
-        guicolor: "#f1f3f6"
+        guicolor: "#f1f4f7"
       });
       jsme.setCallBack("AfterStructureModified", showDrawn);
       jsme.setCallBack("AfterPaste", showDrawn);
     } catch (e) {
-      box.innerHTML = '<div class="sketch-fallback">The structure editor did not start. ' +
+      box.innerHTML = '<div class="fallback">The structure editor did not start. ' +
                       'Use the SMILES tab instead.</div>';
     }
   };
-  function showDrawn(){
-    var s = currentDrawnSmiles();
-    $("draw-smi").textContent = s ? s : "Draw a structure and its SMILES appears here.";
-  }
+  function showDrawn(){ $("draw-smi").textContent = currentDrawnSmiles(); }
   function currentDrawnSmiles(){
     if (!jsme) return "";
     try { return (jsme.smiles() || "").trim(); } catch(e){ return ""; }
   }
 
   $("to-editor").addEventListener("click", function(){
-    var first = ($("smi-input").value || "").split(/\r?\n/).map(function(x){return x.trim();})
-                 .filter(Boolean)[0];
+    var first = ($("smi-input").value || "").split(/\r?\n/)
+                 .map(function(x){ return x.trim(); }).filter(Boolean)[0];
     if (!first || !jsme) return;
     try { jsme.readGenericMolecularInput(first); } catch(e){}
     $("tab-draw").click();
@@ -338,8 +673,9 @@ python server.py</code></pre>
     if (jsme) { try { jsme.reset(); } catch(e){} }
     $("smi-input").value = "";
     $("file-input").value = "";
+    fileRows = [];
     $("drop-label").innerHTML = "Choose a CSV or drop it here.<br>SMILES are read from the first column.";
-    $("draw-smi").textContent = "Draw a structure and its SMILES appears here.";
+    $("draw-smi").textContent = "";
     render(null);
   });
 
@@ -356,7 +692,6 @@ python server.py</code></pre>
   drop.addEventListener("drop", function(e){
     if (e.dataTransfer && e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
   });
-
   function readFile(f){
     if (!f) return;
     var r = new FileReader();
@@ -380,7 +715,6 @@ python server.py</code></pre>
     return out;
   }
 
-  /* ---------- collect input ---------- */
   function collect(){
     if (activeTab === "draw"){
       var s = currentDrawnSmiles();
@@ -393,16 +727,12 @@ python server.py</code></pre>
     return fileRows.slice();
   }
 
-  /* ---------- service health ---------- */
+  /* ---------- service ---------- */
   function setSvc(state, text){
     $("svc-dot").className = "dot" + (state ? " " + state : "");
     $("svc-txt").textContent = text;
   }
   function checkService(){
-    if (!API && ON_PAGES){
-      setSvc("down", "Scoring service not connected");
-      return Promise.resolve(false);
-    }
     setSvc("busy", "Checking the service");
     return fetch(API + (VIA_SPACE ? "/config" : "/health"))
       .then(function(r){ return r.ok ? r.json() : Promise.reject(); })
@@ -411,8 +741,7 @@ python server.py</code></pre>
                      ? "Service up, loading the model" : "Service ready");
         return true;
       })
-      .catch(function(){ setSvc("down", "Scoring service asleep. It wakes on the first run.");
-                         return false; });
+      .catch(function(){ setSvc("down", "Service asleep. It wakes on the first run."); return false; });
   }
 
   /* Pull the payload out of a Gradio event stream. The last data line wins, because the
@@ -434,8 +763,7 @@ python server.py</code></pre>
       return fetch(API + "/predict", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body:JSON.stringify({smiles:smiles})
-      })
-      .then(function(r){
+      }).then(function(r){
         return r.json().then(function(j){
           if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
           return j;
@@ -463,11 +791,10 @@ python server.py</code></pre>
     });
   }
 
-  /* ---------- predict ---------- */
   $("run-btn").addEventListener("click", function(){
     var smiles = collect();
     if (!smiles.length){
-      render({error:"Nothing to score. Draw a structure, paste SMILES, or choose a file."});
+      render({error:"Nothing to score yet. Draw a structure, paste SMILES, or choose a file."});
       return;
     }
     if (smiles.length > MAX_BATCH){
@@ -475,98 +802,103 @@ python server.py</code></pre>
                     MAX_BATCH + " at a time. For more, run it on your own machine."});
       return;
     }
-    if (!API && ON_PAGES){
-      render({noservice:true, n:smiles.length});
-      return;
-    }
-
     $("run-btn").disabled = true;
-    setSvc("busy", "Scoring " + smiles.length +
-                   (smiles.length === 1 ? " structure" : " structures"));
+    setSvc("busy", "Scoring " + smiles.length + (smiles.length === 1 ? " structure" : " structures"));
     render({loading:true, n:smiles.length});
 
     score(smiles)
-      .then(function(j){
-        render({rows:j.results});
-        setSvc("ok", "Service ready");
-      })
-      .catch(function(e){
-        render({error:String(e.message || e)});
-        setSvc("down", "Scoring service unreachable");
-      })
+      .then(function(j){ render({rows:j.results}); setSvc("ok", "Service ready"); })
+      .catch(function(e){ render({error:String(e.message || e)}); setSvc("down", "Service unreachable"); })
       .then(function(){ $("run-btn").disabled = false; });
   });
 
   /* ---------- results ---------- */
   var lastRows = null;
 
-  function callOf(p){
-    if (p > 0.6) return ["Aggregator","hit","var(--hit)"];
-    if (p < 0.3) return ["Non-aggregator","clean","var(--clean)"];
-    return ["Ambiguous","mid","var(--mid)"];
-  }
-  function esc(s){
-    return String(s).replace(/[&<>"]/g, function(c){
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
-    });
-  }
-
   function render(state){
     var box = $("results"), count = $("res-count");
-    lastRows = null; count.textContent = "";
+    lastRows = null;
+    count.textContent = "";
+    box.className = "out-body";
 
-    if (!state){ box.innerHTML = '<div class="empty">Nothing scored yet.</div>'; return; }
-
-    if (state.noservice){
-      box.innerHTML = '<div class="msg info"><strong>The scoring service is not connected yet.</strong><br>' +
-        'Drawing and SMILES work on this page, but the prediction runs on a server because the ' +
-        'Mordred descriptors have no browser build. Until the service is up, run it locally with ' +
-        'the three commands under "Run it on your own machine".</div>';
+    if (!state){
+      box.innerHTML = '<div class="blank">Draw or paste a structure, then press Predict.</div>';
       return;
     }
     if (state.loading){
-      box.innerHTML = '<div class="empty">Scoring ' + state.n +
-        (state.n === 1 ? " structure. " : " structures. ") +
-        'The scoring service sleeps when nobody is using it, so the first run after a ' +
-        'quiet spell takes a minute or two to wake it.</div>';
+      box.innerHTML = '<div class="blank">Scoring ' + state.n +
+        (state.n === 1 ? " structure." : " structures.") +
+        ' The service sleeps when nobody is using it, so the first run after a quiet spell ' +
+        'takes a minute or two to wake it.<div class="wait"><i></i></div></div>';
       return;
     }
-    if (state.error){
-      box.innerHTML = '<div class="msg bad">' + esc(state.error) + '</div>';
-      return;
-    }
+    if (state.error){ box.innerHTML = '<div class="msg">' + esc(state.error) + "</div>"; return; }
 
     var rows = state.rows || [];
-    if (!rows.length){ box.innerHTML = '<div class="empty">No results came back.</div>'; return; }
+    if (!rows.length){ box.innerHTML = '<div class="blank">No results came back.</div>'; return; }
     lastRows = rows;
-
-    var ok = rows.filter(function(r){ return r.probability !== null && r.probability !== undefined; });
     count.textContent = rows.length + (rows.length === 1 ? " structure" : " structures");
 
-    var html = '<div class="scroll"><table class="res-table"><thead><tr>' +
-               '<th>#</th><th>SMILES</th><th>Probability</th><th>Call</th>' +
-               '</tr></thead><tbody>';
+    if (rows.length === 1) one(box, rows[0]);
+    else many(box, rows);
+  }
+
+  /* One compound gets the full readout: the number, the call, and where it sits on the scale. */
+  function one(box, r){
+    if (r.error || r.probability === null || r.probability === undefined){
+      box.innerHTML = '<div class="msg">' + esc(r.error || "That structure could not be parsed.") + "</div>";
+      return;
+    }
+    var p = r.probability, c = callOf(p);
+    box.innerHTML =
+      '<div class="readout">' +
+        '<div class="num" id="big-num">0.000</div>' +
+        '<div class="verdict ' + c[1] + '">' + c[0] + "</div>" +
+        '<div class="gauge">' +
+          '<div class="track"></div>' +
+          '<div class="ticks"><i style="left:30%"></i><i style="left:60%"></i></div>' +
+          '<div class="pin" id="pin" style="left:0%"></div>' +
+          '<div class="axis"><span style="left:0">0</span><span style="left:30%">0.3</span>' +
+          '<span style="left:60%">0.6</span><span style="left:100%">1</span></div>' +
+        "</div>" +
+        '<p class="smi-line mono" title="' + esc(r.smiles) + '">' + esc(r.smiles) + "</p>" +
+      "</div>";
+    countTo($("big-num"), p, 850);
+    nextPaint(function(){ $("pin").style.left = (p * 100).toFixed(1) + "%"; });
+  }
+
+  /* A batch gets a table. The stagger stops after a dozen rows, so 500 compounds are not
+     held up by the animation. */
+  function many(box, rows){
+    var html = '<div class="scroll"><table><thead><tr><th>#</th><th>SMILES</th>' +
+               "<th>Probability</th><th>Call</th></tr></thead><tbody>";
     rows.forEach(function(r, i){
-      html += "<tr><td>" + (i+1) + '</td><td class="smi" title="' + esc(r.smiles) + '">' +
-              esc(r.smiles) + "</td>";
+      html += '<tr style="animation-delay:' + Math.min(i, 12) * 26 + 'ms"><td>' + (i + 1) +
+              '</td><td class="smi" title="' + esc(r.smiles) + '">' + esc(r.smiles) + "</td>";
       if (r.error || r.probability === null || r.probability === undefined){
         html += '<td class="p" colspan="2"><span class="call mid">' +
                 esc(r.error || "Not parsed") + "</span></td>";
       } else {
         var p = r.probability, c = callOf(p);
         html += '<td class="p">' + p.toFixed(3) +
-                '<div class="bar"><i style="width:' + Math.round(p*100) +
-                "%;background:" + c[2] + '"></i></div></td>' +
+                '<span class="mini"><i data-w="' + Math.round(p * 100) +
+                '" style="background:' + c[2] + '"></i></span></td>' +
                 '<td><span class="call ' + c[1] + '">' + c[0] + "</span></td>";
       }
       html += "</tr>";
     });
     html += "</tbody></table></div>";
+    var ok = rows.filter(function(r){ return r.probability !== null && r.probability !== undefined; });
     if (ok.length){
-      html += '<div class="actions"><button class="btn ghost small" id="dl-btn" type="button">' +
-              "Download CSV</button></div>";
+      html += '<div class="foot-row"><span class="count">' + ok.length + " of " + rows.length +
+              ' scored</span><button class="btn ghost sm" id="dl-btn" type="button">Download CSV</button></div>';
     }
+    box.className = "out-body flush";
     box.innerHTML = html;
+    var bars = box.querySelectorAll(".mini i");
+    nextPaint(function(){
+      for (var i = 0; i < bars.length; i++) bars[i].style.width = bars[i].dataset.w + "%";
+    });
     var dl = $("dl-btn");
     if (dl) dl.addEventListener("click", downloadCsv);
   }
@@ -585,6 +917,93 @@ python server.py</code></pre>
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
+
+  /* ---------- guess the flag ----------
+     The probabilities below came from this same model, run offline, so a round needs no
+     network call and the game works while the scoring service is still waking up. The
+     structures were drawn with RDKit from the same SMILES that were scored. */
+  var PAIRS = [
+    {a:{"name":"Clofazimine","p":0.527,"file":"clofazimine.svg"}, b:{"name":"Metformin","p":0.037,"file":"metformin.svg"}},
+    {a:{"name":"Congo red","p":0.492,"file":"congo-red.svg"}, b:{"name":"Tetracaine","p":0.036,"file":"tetracaine.svg"}},
+    {a:{"name":"Vemurafenib","p":0.467,"file":"vemurafenib.svg"}, b:{"name":"Paracetamol","p":0.048,"file":"paracetamol.svg"}},
+    {a:{"name":"Curcumin","p":0.442,"file":"curcumin.svg"}, b:{"name":"Caffeine","p":0.04,"file":"caffeine.svg"}},
+    {a:{"name":"Raloxifene","p":0.441,"file":"raloxifene.svg"}, b:{"name":"Nicotine","p":0.034,"file":"nicotine.svg"}},
+    {a:{"name":"Amiodarone","p":0.434,"file":"amiodarone.svg"}, b:{"name":"Ethanol","p":0.048,"file":"ethanol.svg"}},
+    {a:{"name":"Sorafenib","p":0.403,"file":"sorafenib.svg"}, b:{"name":"Ibuprofen","p":0.029,"file":"ibuprofen.svg"}},
+    {a:{"name":"Lapatinib","p":0.356,"file":"lapatinib.svg"}, b:{"name":"Clozapine","p":0.136,"file":"clozapine.svg"}},
+    {a:{"name":"Quercetin","p":0.337,"file":"quercetin.svg"}, b:{"name":"Aspirin","p":0.033,"file":"aspirin.svg"}},
+    {a:{"name":"Hexachlorophene","p":0.315,"file":"hexachlorophene.svg"}, b:{"name":"Benzyl benzoate","p":0.074,"file":"benzyl-benzoate.svg"}},
+    {a:{"name":"Miconazole","p":0.278,"file":"miconazole.svg"}, b:{"name":"Chlorpromazine","p":0.123,"file":"chlorpromazine.svg"}}
+  ];
+
+  var order = PAIRS.map(function(_, i){ return i; });
+  for (var i = order.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = order[i]; order[i] = order[j]; order[j] = t;
+  }
+  var round = 0, right = 0, asked = 0, answered = true, sides = null, tiles = null;
+
+  function deal(){
+    var pair = PAIRS[order[round % order.length]];
+    sides = Math.random() < 0.5 ? [pair.a, pair.b] : [pair.b, pair.a];
+    answered = false;
+    $("next-btn").disabled = true;
+    $("game-note").textContent = "";
+    $("board").innerHTML = sides.map(function(m){
+      return '<button class="pick" type="button">' +
+               '<span class="tag"></span>' +
+               '<span class="name">' + esc(m.name) + "</span>" +
+               '<span class="draw" data-src="mol/' + m.file + '"></span>' +
+               '<span class="fold"><span><span class="fold-pad">' +
+                 '<span class="p">0.000</span>' +
+                 '<span class="mini"><i></i></span>' +
+                 '<span class="call"></span>' +
+               "</span></span></span>" +
+             "</button>";
+    }).join("");
+
+    tiles = $("board").querySelectorAll(".pick");
+    [].forEach.call(tiles, function(tile, k){
+      var holder = tile.querySelector(".draw");
+      fetch(holder.dataset.src)
+        .then(function(r){ return r.text(); })
+        .then(function(svg){ holder.innerHTML = svg; })
+        .catch(function(){ holder.textContent = sides[k].name; });
+      tile.addEventListener("click", function(){ choose(k); });
+    });
+  }
+
+  function choose(k){
+    if (answered) return;
+    answered = true;
+    asked++;
+    var winner = sides[0].p > sides[1].p ? 0 : 1;
+    if (k === winner) right++;
+    $("score").innerHTML = right + " <em>of " + asked + "</em>";
+    $("next-btn").disabled = false;
+
+    [].forEach.call(tiles, function(tile, n){
+      var m = sides[n], c = callOf(m.p);
+      tile.classList.add("done", n === winner ? "win" : "lose");
+      var tag = tile.querySelector(".tag");
+      tag.className = "tag " + (n === winner ? "yes" : "no");
+      tag.textContent = n === winner ? "Higher" : "Lower";
+      var call = tile.querySelector(".call");
+      call.className = "call " + c[1];
+      call.textContent = c[0];
+      var bar = tile.querySelector(".mini i");
+      bar.style.background = c[2];
+      countTo(tile.querySelector(".p"), m.p, 700);
+      nextPaint(function(){ bar.style.width = Math.round(m.p * 100) + "%"; });
+    });
+
+    var hi = sides[winner], lo = sides[1 - winner];
+    $("game-note").textContent = (k === winner ? "Right. " : "Not this time. ") +
+      hi.name + " scores " + hi.p.toFixed(3) + ", " + lo.name + " scores " + lo.p.toFixed(3) + ".";
+  }
+
+  $("next-btn").addEventListener("click", function(){ round++; deal(); });
+  deal();
 
   checkService();
 })();
